@@ -1,4 +1,4 @@
 satin-c
 =======
 
-CO2 Laser Saturation Intensity Calculation in C
+CO2 Laser Saturation Intensity calculation in C
