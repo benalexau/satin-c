@@ -9,7 +9,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#define N     1000
+#define N     100
 #define RAD   18E-2
 #define W1    3E-1
 #define DR    2E-3
@@ -21,7 +21,7 @@
 #define EXPR  2 * M_PI * DR
 
 void calculate();
-int getInputPowers(int inputPowerData[]);
+int getInputPowers(int inputPowers[]);
 int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePressure[][3], char carbonDioxide[][3]);
 void *satinThread(void *arg);
 void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd);
@@ -48,18 +48,18 @@ int main(void) {
 
 void calculate() {
 
-    int i, pNum, lNum, inputPowerData[N];
+    int i, pNum, lNum, inputPowers[N];
     float smallSignalGain[N];
     char outputFile[N][9], dischargePressure[N][3], carbonDioxide[N][3];
 
-    pNum = getInputPowers(inputPowerData);
+    pNum = getInputPowers(inputPowers);
     lNum = getLaserData(smallSignalGain, outputFile, dischargePressure, carbonDioxide);
     pthread_t threads[lNum];
     satin_thread_args thread_args[lNum];
 
     for (i = 0; i < lNum; i++) {
         thread_args[i].pNum = pNum;
-        memcpy(thread_args[i].inputPowerData, inputPowerData, sizeof(inputPowerData));
+        memcpy(thread_args[i].inputPowerData, inputPowers, sizeof(inputPowers));
         thread_args[i].smallSignalGain = smallSignalGain[i];
         strcpy(thread_args[i].outputFile = malloc(sizeof(outputFile[i])), outputFile[i]);
         strcpy(thread_args[i].dischargePressure = malloc(sizeof(dischargePressure[i])), dischargePressure[i]);
@@ -73,7 +73,7 @@ void calculate() {
     }
 }
 
-int getInputPowers(int inputPowerData[]) {
+int getInputPowers(int inputPowers[]) {
 
     int i, inputPower;
     char *inputPowerFile = "pin.dat";
@@ -84,11 +84,8 @@ int getInputPowers(int inputPowerData[]) {
         exit(1);
     }
 
-    for (i = 0; i < N; i++) {
-        if (fscanf(fd, "%d \n", &inputPower) == EOF) {
-            break;
-        }
-        inputPowerData[i] = inputPower;
+    for (i = 0; fscanf(fd, "%d \n", &inputPower) != EOF; i++) {
+        inputPowers[i] = inputPower;
     }
 
     if (fclose(fd) == EOF) {
@@ -111,10 +108,7 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
         exit(1);
     }
 
-    for (i = 0; i < N; i++) {
-        if (fscanf(fd, "%s %f %s %s \n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) == EOF) {
-            break;
-        }
+    for (i = 0; fscanf(fd, "%s %f %s %s \n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF; i++) {
         smallSignalGain[i] = laserGain;
     }
 

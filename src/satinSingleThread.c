@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-#define N     1000
+#define N     10
 #define RAD   18E-2
 #define W1    3E-1
 #define DR    2E-3
@@ -19,7 +19,7 @@
 #define EXPR  2 * M_PI * DR
 
 void calculate();
-int getInputPowers(int inputPowerData[]);
+int getInputPowers(int inputPowers[]);
 int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePressure[][3], char carbonDioxide[][3]);
 void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd);
 
@@ -75,7 +75,7 @@ void calculate() {
     }
 }
 
-int getInputPowers(int inputPowerData[]) {
+int getInputPowers(int inputPowers[]) {
 
     int i, inputPower;
     char *inputPowerFile = "pin.dat";
@@ -86,11 +86,8 @@ int getInputPowers(int inputPowerData[]) {
         exit(1);
     }
 
-    for (i = 0; i < N; i++) {
-        if (fscanf(fd, "%d \n", &inputPower) == EOF) {
-            break;
-        }
-        inputPowerData[i] = inputPower;
+    for (i = 0; fscanf(fd, "%d \n", &inputPower) != EOF; i++) {
+        inputPowers[i] = inputPower;
     }
 
     if (fclose(fd) == EOF) {
@@ -113,10 +110,7 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
         exit(1);
     }
 
-    for (i = 0; i < N; i++) {
-        if (fscanf(fd, "%s %f %s %s \n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) == EOF) {
-            break;
-        }
+    for (i = 0; fscanf(fd, "%s %f %s %s \n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF; i++) {
         smallSignalGain[i] = laserGain;
     }
 
