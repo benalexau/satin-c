@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <time.h>
 #include <string.h>
 #include <pthread.h>
@@ -138,10 +139,7 @@ void *satinThread(void *arg) {
     fprintf(fd, "Pressure in Main Discharge = %skPa\n", thread_args->dischargePressure);
     fprintf(fd, "Small-signal Gain = %4.1f %%\n", thread_args->smallSignalGain);
     fprintf(fd, "CO2 via %s\n\n", thread_args->carbonDioxide);
-    fprintf(fd, "Pin\t\tPout\t\tSat. Int.");
-    fprintf(fd, "\tln(Pout/Pin)\tPout-Pin\n");
-    fprintf(fd, "(watts)\t\t(watts)\t\t(watts/cm2)");
-    fprintf(fd, "\t\t\t(watts)\n");
+    fprintf(fd, "Pin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n");
 
     for (i = 0; i < thread_args->pNum; i++) {
         gaussianCalculation(thread_args->inputPowerData[i], thread_args->smallSignalGain, fd);

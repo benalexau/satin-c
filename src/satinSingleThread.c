@@ -55,10 +55,7 @@ void calculate() {
         fprintf(fd, "Pressure in Main Discharge = %skPa\n", dischargePressure[i]);
         fprintf(fd, "Small-signal Gain = %4.1f %%\n", smallSignalGain[i]);
         fprintf(fd, "CO2 via %s\n\n", carbonDioxide[i]);
-        fprintf(fd, "Pin\t\tPout\t\tSat. Int.");
-        fprintf(fd, "\tln(Pout/Pin)\tPout-Pin\n");
-        fprintf(fd, "(watts)\t\t(watts)\t\t(watts/cm2)");
-        fprintf(fd, "\t\t\t(watts)\n");
+        fprintf(fd, "Pin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n");
 
         for (j = 0; j < pNum; j++) {
             gaussianCalculation(inputPowerData[j], smallSignalGain[i], fd);
