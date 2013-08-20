@@ -66,11 +66,17 @@ void calculate() {
         strcpy(thread_args[i].dischargePressure = malloc(sizeof(dischargePressure[i])), dischargePressure[i]);
         strcpy(thread_args[i].carbonDioxide = malloc(sizeof(carbonDioxide[i])), carbonDioxide[i]);
 
-        pthread_create(&threads[i], NULL, satinThread, &thread_args[i]);
+        if (pthread_create(&threads[i], NULL, satinThread, &thread_args[i]) != 0) {
+            perror("calculate pthread_create");
+            exit(EXIT_FAILURE);
+        }
     }
 
     for (i = 0; i < lNum; i++) {
-        pthread_join(threads[i], NULL);
+        if (pthread_join(threads[i], NULL) != 0) {
+            perror("calculate pthread_join");
+            exit(EXIT_FAILURE);
+        }
     }
 }
 
@@ -82,7 +88,7 @@ int getInputPowers(int inputPowers[]) {
 
     if ((fd = fopen(inputPowerFile, "r")) == NULL) {
         printf("Error opening %s\n", inputPowerFile);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     for (i = 0; fscanf(fd, "%d \n", &inputPower) != EOF; i++) {
@@ -91,7 +97,7 @@ int getInputPowers(int inputPowers[]) {
 
     if (fclose(fd) == EOF) {
         printf("Error closing %s\n", inputPowerFile);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     return i;
@@ -106,16 +112,17 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
 
     if ((fd = fopen(gainMediumDataFile, "r")) == NULL) {
         printf("Error opening %s\n", gainMediumDataFile);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
-    for (i = 0; fscanf(fd, "%s %f %s %s \n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF; i++) {
+    for (i = 0; fscanf(fd, "%s %f %s %s \n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF;
+            i++) {
         smallSignalGain[i] = laserGain;
     }
 
     if (fclose(fd) == EOF) {
         printf("Error closing %s\n", gainMediumDataFile);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     return i;
@@ -130,7 +137,7 @@ void *satinThread(void *arg) {
 
     if ((fd = fopen(thread_args->outputFile, "w+")) == NULL) {
         printf("Error opening %s\n", thread_args->outputFile);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     time(&the_time);
@@ -151,10 +158,10 @@ void *satinThread(void *arg) {
 
     if (fclose(fd) == EOF) {
         printf("Error closing %s\n", thread_args->outputFile);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
-    return 0;
+    pthread_exit(NULL);
 }
 
 void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd) {

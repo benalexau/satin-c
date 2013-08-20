@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <time.h>
 
@@ -18,21 +19,25 @@
 #define Z12   Z1 * Z1
 #define EXPR  2 * M_PI * DR
 
-void calculate();
+_Bool calculate();
 int getInputPowers(int inputPowers[]);
 int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePressure[][3], char carbonDioxide[][3]);
 void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd);
 
 int main(int argc, char **argv) {
 
+    int rc = 0;
     clock_t start = clock();
-    calculate();
+    if (!calculate()) {
+        printf("Failed to complete\n");
+        rc = 1;
+    }
     clock_t end = clock();
     printf("The time was %5.2f seconds.\n", ((double) end - start) / CLOCKS_PER_SEC);
-    return 0;
+    return rc;
 }
 
-void calculate() {
+_Bool calculate() {
 
     int i, j, pNum, lNum, inputPowerData[N];
     float smallSignalGain[N];
@@ -43,10 +48,11 @@ void calculate() {
     pNum = getInputPowers(inputPowerData);
     lNum = getLaserData(smallSignalGain, outputFile, dischargePressure, carbonDioxide);
 
+    int total = 0;
     for (i = 0; i < lNum; i++) {
         if ((fd = fopen(outputFile[i], "w+")) == NULL) {
             printf("Error opening %s\n", outputFile[i]);
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         time(&the_time);
@@ -57,8 +63,10 @@ void calculate() {
         fprintf(fd, "CO2 via %s\n\n", carbonDioxide[i]);
         fprintf(fd, "Pin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n");
 
+        int count = 0;
         for (j = 0; j < pNum; j++) {
             gaussianCalculation(inputPowerData[j], smallSignalGain[i], fd);
+            count++;
         }
 
         time(&the_time);
@@ -67,9 +75,12 @@ void calculate() {
 
         if (fclose(fd) == EOF) {
             printf("Error closing %s\n", outputFile[i]);
-            exit(1);
+            exit(EXIT_FAILURE);
         }
+        total += count;
     }
+
+    return total == pNum * lNum;
 }
 
 int getInputPowers(int inputPowers[]) {
@@ -80,7 +91,7 @@ int getInputPowers(int inputPowers[]) {
 
     if ((fd = fopen(inputPowerFile, "r")) == NULL) {
         printf("Error opening %s\n", inputPowerFile);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     for (i = 0; fscanf(fd, "%d \n", &inputPower) != EOF; i++) {
@@ -89,7 +100,7 @@ int getInputPowers(int inputPowers[]) {
 
     if (fclose(fd) == EOF) {
         printf("Error closing %s\n", inputPowerFile);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     return i;
@@ -104,7 +115,7 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
 
     if ((fd = fopen(gainMediumDataFile, "r")) == NULL) {
         printf("Error opening %s\n", gainMediumDataFile);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     for (i = 0; fscanf(fd, "%s %f %s %s \n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF; i++) {
@@ -113,7 +124,7 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
 
     if (fclose(fd) == EOF) {
         printf("Error closing %s\n", gainMediumDataFile);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     return i;
