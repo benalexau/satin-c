@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 
 _Bool calculate() {
 
-    int i, j, pNum, lNum, inputPowerData[N];
+    int i, j, pNum, lNum, inputPowerData[N], total, count;
     float smallSignalGain[N];
     char outputFile[N][9], dischargePressure[N][3], carbonDioxide[N][3];
     time_t the_time;
@@ -48,7 +48,7 @@ _Bool calculate() {
     pNum = getInputPowers(inputPowerData);
     lNum = getLaserData(smallSignalGain, outputFile, dischargePressure, carbonDioxide);
 
-    int total = 0;
+    total = 0;
     for (i = 0; i < lNum; i++) {
         if ((fd = fopen(outputFile[i], "w+")) == NULL) {
             printf("Error opening %s\n", outputFile[i]);
@@ -63,7 +63,7 @@ _Bool calculate() {
         fprintf(fd, "CO2 via %s\n\n", carbonDioxide[i]);
         fprintf(fd, "Pin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n");
 
-        int count = 0;
+        count = 0;
         for (j = 0; j < pNum; j++) {
             gaussianCalculation(inputPowerData[j], smallSignalGain[i], fd);
             count++;

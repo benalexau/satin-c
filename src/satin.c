@@ -49,7 +49,7 @@ int main(void) {
 
 void calculate() {
 
-    int i, pNum, lNum, inputPowers[N];
+    int i, pNum, lNum, inputPowers[N], createdThreads;
     float smallSignalGain[N];
     char outputFile[N][9], dischargePressure[N][3], carbonDioxide[N][3];
 
@@ -58,6 +58,7 @@ void calculate() {
     pthread_t threads[lNum];
     satin_thread_args thread_args[lNum];
 
+    createdThreads = 0;
     for (i = 0; i < lNum; i++) {
         thread_args[i].pNum = pNum;
         memcpy(thread_args[i].inputPowerData, inputPowers, sizeof(inputPowers));
@@ -66,15 +67,15 @@ void calculate() {
         strcpy(thread_args[i].dischargePressure = malloc(sizeof(dischargePressure[i])), dischargePressure[i]);
         strcpy(thread_args[i].carbonDioxide = malloc(sizeof(carbonDioxide[i])), carbonDioxide[i]);
 
-        if (pthread_create(&threads[i], NULL, satinThread, &thread_args[i]) != 0) {
-            perror("calculate pthread_create");
-            exit(EXIT_FAILURE);
+        if (pthread_create(&threads[i], NULL, satinThread, &thread_args[i]) == 0) {
+            createdThreads++;
+        } else {
+            continue;
         }
     }
 
-    for (i = 0; i < lNum; i++) {
+    for (i = 0; i < createdThreads; i++) {
         if (pthread_join(threads[i], NULL) != 0) {
-            perror("calculate pthread_join");
             exit(EXIT_FAILURE);
         }
     }
@@ -115,8 +116,7 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; fscanf(fd, "%s %f %s %s \n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF;
-            i++) {
+    for (i = 0; fscanf(fd, "%s %f %s %s \n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF; i++) {
         smallSignalGain[i] = laserGain;
     }
 
