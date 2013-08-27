@@ -138,7 +138,7 @@ void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd) {
 
     if ((exprtemp = expr = (double*) malloc(8 * 8001)) == NULL) {
         printf("Not enough memory to allocate buffer\n");
-        return;
+        exit(EXIT_FAILURE);
     }
 
     for (i = 0; i < 8001; i++) {
@@ -163,9 +163,8 @@ void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd) {
             outputPower += (outputIntensity * EXPR * r);
         }
 
-        fprintf(fd, "%d\t\t%7.3f", inputPower, outputPower);
-        fprintf(fd, "\t\t%d\t\t%5.3f", saturationIntensity, log(outputPower / inputPower));
-        fprintf(fd, "\t\t%7.3f\n", outputPower - inputPower);
+        fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower, saturationIntensity,
+                log(outputPower / inputPower), outputPower - inputPower);
         fflush(fd);
     }
 
