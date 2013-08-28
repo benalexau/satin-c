@@ -116,8 +116,7 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; fscanf(fd, "%s %f %s %s \n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF;
-            i++) {
+    for (i = 0; fscanf(fd, "%s %f %s %s\n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF; i++) {
         smallSignalGain[i] = laserGain;
     }
 
@@ -151,7 +150,7 @@ void *satinThread(void *arg) {
     }
 
     time(&the_time);
-    fprintf(fd, "\nEnd date: %s ", ctime(&the_time));
+    fprintf(fd, "\nEnd date: %s\n", ctime(&the_time));
     fflush(fd);
 
     if (fclose(fd) == EOF) {
@@ -167,7 +166,6 @@ void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd) {
     int i, j, saturationIntensity;
     float r;
     double *expr, *exprtemp;
-    char *gaussian;
 
     if ((exprtemp = expr = (double*) malloc(8 * 8001)) == NULL) {
         printf("Not enough memory to allocate buffer\n");

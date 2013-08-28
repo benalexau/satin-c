@@ -67,7 +67,7 @@ _Bool calculate() {
         }
 
         time(&the_time);
-        fprintf(fd, "\nEnd date: %s ", ctime(&the_time));
+        fprintf(fd, "\nEnd date: %s\n", ctime(&the_time));
         fflush(fd);
 
         if (fclose(fd) == EOF) {
