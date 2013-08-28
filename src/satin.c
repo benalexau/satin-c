@@ -142,12 +142,9 @@ void *satinThread(void *arg) {
     }
 
     time(&the_time);
-    fprintf(fd, "Start date: %s \n", ctime(&the_time));
-    fprintf(fd, "Gaussian Beam\n\n");
-    fprintf(fd, "Pressure in Main Discharge = %skPa\n", thread_args->dischargePressure);
-    fprintf(fd, "Small-signal Gain = %4.1f %%\n", thread_args->smallSignalGain);
-    fprintf(fd, "CO2 via %s\n\n", thread_args->carbonDioxide);
-    fprintf(fd, "Pin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n");
+    fprintf(fd,
+            "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %4.1f %%\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
+            ctime(&the_time), thread_args->dischargePressure, thread_args->smallSignalGain, thread_args->carbonDioxide);
 
     for (i = 0; i < thread_args->pNum; i++) {
         gaussianCalculation(thread_args->inputPowerData[i], thread_args->smallSignalGain, fd);
@@ -170,6 +167,7 @@ void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd) {
     int i, j, saturationIntensity;
     float r;
     double *expr, *exprtemp;
+    char *gaussian;
 
     if ((exprtemp = expr = (double*) malloc(8 * 8001)) == NULL) {
         printf("Not enough memory to allocate buffer\n");

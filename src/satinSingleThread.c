@@ -56,12 +56,9 @@ _Bool calculate() {
         }
 
         time(&the_time);
-        fprintf(fd, "Start date: %s \n", ctime(&the_time));
-        fprintf(fd, "Gaussian Beam\n\n");
-        fprintf(fd, "Pressure in Main Discharge = %skPa\n", dischargePressure[i]);
-        fprintf(fd, "Small-signal Gain = %4.1f %%\n", smallSignalGain[i]);
-        fprintf(fd, "CO2 via %s\n\n", carbonDioxide[i]);
-        fprintf(fd, "Pin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n");
+        fprintf(fd,
+                "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %4.1f %%\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
+                ctime(&the_time), dischargePressure[i], smallSignalGain[i], carbonDioxide[i]);
 
         count = 0;
         for (j = 0; j < pNum; j++) {
@@ -118,7 +115,7 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; fscanf(fd, "%s %f %s %s \n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF; i++) {
+    for (i = 0; fscanf(fd, "%s %f %s %s\n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF; i++) {
         smallSignalGain[i] = laserGain;
     }
 
