@@ -92,7 +92,6 @@ _Bool calculate() {
     }
 
     free((gaussian*) gaussianData);
-
     return total == pNum * lNum;
 }
 
