@@ -8,7 +8,7 @@
 #include <sys/types.h>
 #include <time.h>
 
-#define N     10
+#define N     100
 #define RAD   18E-2
 #define W1    3E-1
 #define DR    2E-3
@@ -19,10 +19,15 @@
 #define Z12   Z1 * Z1
 #define EXPR  2 * M_PI * DR
 
+typedef struct {
+    int inputPower, saturationIntensity;
+    double outputPower;
+} gaussian;
+
 _Bool calculate();
 int getInputPowers(int inputPowers[]);
 int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePressure[][3], char carbonDioxide[][3]);
-void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd);
+void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData);
 
 int main(int argc, char **argv) {
 
@@ -39,11 +44,12 @@ int main(int argc, char **argv) {
 
 _Bool calculate() {
 
-    int i, j, pNum, lNum, inputPowerData[N], total, count;
+    int i, j, k, pNum, lNum, inputPowerData[N], total, count;
     float smallSignalGain[N];
     char outputFile[N][9], dischargePressure[N][3], carbonDioxide[N][3];
     time_t the_time;
     FILE *fd;
+    gaussian *gaussianData = malloc(16 * sizeof(gaussian));
 
     pNum = getInputPowers(inputPowerData);
     lNum = getLaserData(smallSignalGain, outputFile, dischargePressure, carbonDioxide);
@@ -62,7 +68,14 @@ _Bool calculate() {
 
         count = 0;
         for (j = 0; j < pNum; j++) {
-            gaussianCalculation(inputPowerData[j], smallSignalGain[i], fd);
+            gaussianCalculation(inputPowerData[j], smallSignalGain[i], gaussianData);
+            for (k = 0; k < sizeof(*gaussianData); k++) {
+                int inputPower = gaussianData[k].inputPower;
+                double outputPower = gaussianData[k].outputPower;
+                int saturationIntensity = gaussianData[k].saturationIntensity;
+                fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower, saturationIntensity,
+                        log(outputPower / inputPower), outputPower - inputPower);
+            }
             count++;
         }
 
@@ -74,8 +87,11 @@ _Bool calculate() {
             printf("Error closing %s\n", outputFile[i]);
             exit(EXIT_FAILURE);
         }
+
         total += count;
     }
+
+    free((gaussian*) gaussianData);
 
     return total == pNum * lNum;
 }
@@ -127,7 +143,7 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
     return i;
 }
 
-void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd) {
+void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData) {
 
     int i, j, saturationIntensity;
     float r;
@@ -147,6 +163,7 @@ void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd) {
     double inputIntensity = 2 * inputPower / AREA;
     double expr2 = (smallSignalGain / 32E3) * DZ;
 
+    i = 0;
     for (saturationIntensity = 10E3; saturationIntensity <= 25E3; saturationIntensity += 1E3) {
         double outputPower = 0.0;
         double expr3 = saturationIntensity * expr2;
@@ -160,10 +177,11 @@ void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd) {
             outputPower += (outputIntensity * EXPR * r);
         }
 
-        fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower, saturationIntensity,
-                log(outputPower / inputPower), outputPower - inputPower);
-        fflush(fd);
+        gaussianData[i].inputPower = inputPower;
+        gaussianData[i].saturationIntensity = saturationIntensity;
+        gaussianData[i].outputPower = outputPower;
+        i++;
     }
 
-    free((char*) expr);
+    free((double*) expr);
 }

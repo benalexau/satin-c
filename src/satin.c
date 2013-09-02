@@ -21,17 +21,22 @@
 #define Z12   Z1 * Z1
 #define EXPR  2 * M_PI * DR
 
-void calculate();
-int getInputPowers(int inputPowers[]);
-int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePressure[][3], char carbonDioxide[][3]);
-void *satinThread(void *arg);
-void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd);
-
 typedef struct {
     int pNum, inputPowerData[N];
     float smallSignalGain;
     char *outputFile, *dischargePressure, *carbonDioxide;
 } satin_thread_args;
+
+typedef struct {
+    int inputPower, saturationIntensity;
+    double outputPower;
+} gaussian;
+
+void calculate();
+int getInputPowers(int inputPowers[]);
+int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePressure[][3], char carbonDioxide[][3]);
+void *satinThread(void *arg);
+void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData);
 
 int main(void) {
 
@@ -69,8 +74,6 @@ void calculate() {
 
         if (pthread_create(&threads[i], NULL, satinThread, &thread_args[i]) == 0) {
             createdThreads++;
-        } else {
-            continue;
         }
     }
 
@@ -131,9 +134,10 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
 void *satinThread(void *arg) {
 
     satin_thread_args* thread_args = (satin_thread_args*) arg;
-    int i;
+    int i, j;
     time_t the_time;
     FILE *fd;
+    gaussian *gaussianData = malloc(16 * sizeof(gaussian));
 
     if ((fd = fopen(thread_args->outputFile, "w+")) == NULL) {
         printf("Error opening %s\n", thread_args->outputFile);
@@ -146,9 +150,17 @@ void *satinThread(void *arg) {
             ctime(&the_time), thread_args->dischargePressure, thread_args->smallSignalGain, thread_args->carbonDioxide);
 
     for (i = 0; i < thread_args->pNum; i++) {
-        gaussianCalculation(thread_args->inputPowerData[i], thread_args->smallSignalGain, fd);
+        gaussianCalculation(thread_args->inputPowerData[i], thread_args->smallSignalGain, gaussianData);
+        for (j = 0; j < 16; j++) {
+            int inputPower = gaussianData[j].inputPower;
+            double outputPower = gaussianData[j].outputPower;
+            int saturationIntensity = gaussianData[j].saturationIntensity;
+            fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower, saturationIntensity,
+                    log(outputPower / inputPower), outputPower - inputPower);
+        }
     }
 
+    free((gaussian*) gaussianData);
     time(&the_time);
     fprintf(fd, "\nEnd date: %s\n", ctime(&the_time));
     fflush(fd);
@@ -159,9 +171,10 @@ void *satinThread(void *arg) {
     }
 
     pthread_exit(NULL);
+    return NULL;
 }
 
-void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd) {
+void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData) {
 
     int i, j, saturationIntensity;
     float r;
@@ -181,6 +194,7 @@ void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd) {
     double inputIntensity = 2 * inputPower / AREA;
     double expr2 = (smallSignalGain / 32E3) * DZ;
 
+    i = 0;
     for (saturationIntensity = 10E3; saturationIntensity <= 25E3; saturationIntensity += 1E3) {
         double outputPower = 0.0;
         double expr3 = saturationIntensity * expr2;
@@ -194,10 +208,11 @@ void gaussianCalculation(int inputPower, float smallSignalGain, FILE *fd) {
             outputPower += (outputIntensity * EXPR * r);
         }
 
-        fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower, saturationIntensity,
-                log(outputPower / inputPower), outputPower - inputPower);
-        fflush(fd);
+        gaussianData[i].inputPower = inputPower;
+        gaussianData[i].saturationIntensity = saturationIntensity;
+        gaussianData[i].outputPower = outputPower;
+        i++;
     }
 
-    free((char*) expr);
+    free((double*) expr);
 }
