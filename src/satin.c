@@ -1,9 +1,9 @@
 /* Program satin.c by Alan K Stewart
  Saturation Intensity Calculation */
 
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <time.h>
@@ -24,7 +24,8 @@
 typedef struct {
     int pNum, inputPowerData[N];
     float smallSignalGain;
-    char *outputFile, *dischargePressure, *carbonDioxide;
+    int dischargePressure;
+    char *outputFile, *carbonDioxide;
 } satin_thread_args;
 
 typedef struct {
@@ -34,7 +35,7 @@ typedef struct {
 
 void calculate();
 int getInputPowers(int inputPowers[]);
-int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePressure[][3], char carbonDioxide[][3]);
+int getLaserData(float smallSignalGain[], char outputFile[][9], int dischargePressure[], char carbonDioxide[][3]);
 void *satinThread(void *arg);
 void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData);
 
@@ -54,9 +55,9 @@ int main(void) {
 
 void calculate() {
 
-    int i, pNum, lNum, inputPowers[N], createdThreads;
+    int i, pNum, lNum, inputPowers[N], dischargePressure[N], createdThreads;
     float smallSignalGain[N];
-    char outputFile[N][9], dischargePressure[N][3], carbonDioxide[N][3];
+    char outputFile[N][9], carbonDioxide[N][3];
 
     pNum = getInputPowers(inputPowers);
     lNum = getLaserData(smallSignalGain, outputFile, dischargePressure, carbonDioxide);
@@ -69,7 +70,7 @@ void calculate() {
         memcpy(thread_args[i].inputPowerData, inputPowers, sizeof(inputPowers));
         thread_args[i].smallSignalGain = smallSignalGain[i];
         strcpy(thread_args[i].outputFile = malloc(sizeof(outputFile[i])), outputFile[i]);
-        strcpy(thread_args[i].dischargePressure = malloc(sizeof(dischargePressure[i])), dischargePressure[i]);
+        thread_args[i].dischargePressure = dischargePressure[i];
         strcpy(thread_args[i].carbonDioxide = malloc(sizeof(carbonDioxide[i])), carbonDioxide[i]);
 
         if (pthread_create(&threads[i], NULL, satinThread, &thread_args[i]) == 0) {
@@ -107,9 +108,9 @@ int getInputPowers(int inputPowers[]) {
     return i;
 }
 
-int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePressure[][3], char carbonDioxide[][3]) {
+int getLaserData(float smallSignalGain[], char outputFile[][9], int dischargePressure[], char carbonDioxide[][3]) {
 
-    int i;
+    int i, mainDischargePressure;
     float laserGain;
     char *gainMediumDataFile = "laser.dat";
     FILE *fd;
@@ -119,8 +120,9 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; fscanf(fd, "%s %f %s %s\n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF; i++) {
+    for (i = 0; fscanf(fd, "%s %f %d %s\n", outputFile[i], &laserGain, &mainDischargePressure, carbonDioxide[i]) != EOF; i++) {
         smallSignalGain[i] = laserGain;
+        dischargePressure[i] = mainDischargePressure;
     }
 
     if (fclose(fd) == EOF) {
@@ -146,7 +148,7 @@ void *satinThread(void *arg) {
 
     time(&the_time);
     fprintf(fd,
-            "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %4.1f %%\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
+            "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f%%\nCO2 via %d\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
             ctime(&the_time), thread_args->dischargePressure, thread_args->smallSignalGain, thread_args->carbonDioxide);
 
     for (i = 0; i < thread_args->pNum; i++) {
