@@ -1,10 +1,10 @@
 /* Program satinSingleThread.c by Alan K Stewart
  Saturation Intensity Calculation */
 
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <math.h>
 #include <sys/types.h>
 #include <time.h>
 
@@ -26,7 +26,7 @@ typedef struct {
 
 _Bool calculate();
 int getInputPowers(int inputPowers[]);
-int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePressure[][3], char carbonDioxide[][3]);
+int getLaserData(float smallSignalGain[], char outputFile[][9], int dischargePressure[], char carbonDioxide[][3]);
 void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData);
 
 int main(int argc, char **argv) {
@@ -44,9 +44,9 @@ int main(int argc, char **argv) {
 
 _Bool calculate() {
 
-    int i, j, k, pNum, lNum, inputPowerData[N], total, count;
+    int i, j, k, pNum, lNum, inputPowerData[N], total, count, dischargePressure[N];
     float smallSignalGain[N];
-    char outputFile[N][9], dischargePressure[N][3], carbonDioxide[N][3];
+    char outputFile[N][9], carbonDioxide[N][3];
     time_t the_time;
     FILE *fd;
     gaussian *gaussianData = malloc(16 * sizeof(gaussian));
@@ -63,9 +63,8 @@ _Bool calculate() {
 
         time(&the_time);
         fprintf(fd,
-                "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %skPa\nSmall-signal Gain = %4.1f %%\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
+                "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f%%\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
                 ctime(&the_time), dischargePressure[i], smallSignalGain[i], carbonDioxide[i]);
-
         count = 0;
         for (j = 0; j < pNum; j++) {
             gaussianCalculation(inputPowerData[j], smallSignalGain[i], gaussianData);
@@ -118,9 +117,9 @@ int getInputPowers(int inputPowers[]) {
     return i;
 }
 
-int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePressure[][3], char carbonDioxide[][3]) {
+int getLaserData(float smallSignalGain[], char outputFile[][9], int dischargePressure[], char carbonDioxide[][3]) {
 
-    int i;
+    int i, mainDischargePressure;
     float laserGain;
     char *gainMediumDataFile = "laser.dat";
     FILE *fd;
@@ -130,8 +129,9 @@ int getLaserData(float smallSignalGain[], char outputFile[][9], char dischargePr
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; fscanf(fd, "%s %f %s %s\n", outputFile[i], &laserGain, dischargePressure[i], carbonDioxide[i]) != EOF; i++) {
+    for (i = 0; fscanf(fd, "%s %f %d %s\n", outputFile[i], &laserGain, &mainDischargePressure, carbonDioxide[i]) != EOF; i++) {
         smallSignalGain[i] = laserGain;
+        dischargePressure[i] = mainDischargePressure;
     }
 
     if (fclose(fd) == EOF) {
