@@ -22,9 +22,8 @@
 #define EXPR  2 * M_PI * DR
 
 typedef struct {
-    int pNum, inputPowerData[N];
+    int pNum, inputPowerData[N], dischargePressure;
     float smallSignalGain;
-    int dischargePressure;
     char *outputFile, *carbonDioxide;
 } satin_thread_args;
 
@@ -148,7 +147,7 @@ void *satinThread(void *arg) {
 
     time(&the_time);
     fprintf(fd,
-            "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f%%\nCO2 via %d\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
+            "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f%%\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
             ctime(&the_time), thread_args->dischargePressure, thread_args->smallSignalGain, thread_args->carbonDioxide);
 
     for (i = 0; i < thread_args->pNum; i++) {
