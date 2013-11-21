@@ -3,7 +3,7 @@ default: all
 all: satin satinSingleThread
 
 clean:
-	rm -f satin satinSingleThread m*.put p*.out
+	rm -f satin satinSingleThread m*.out p*.out
 
 satin: satin.c
 	gcc satin.c -lm -lpthread -o satin
