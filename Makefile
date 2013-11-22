@@ -5,11 +5,11 @@ all: satin satinSingleThread
 clean:
 	rm -f satin satinSingleThread m*.out p*.out
 
-satin: satin.c
-	gcc satin.c -lm -lpthread -o satin
+satin: src/satin.c
+	gcc src/satin.c -lm -lpthread -o satin
 
-satinSingleThread: satinSingleThread.c
-	gcc satinSingleThread.c -lm -o satinSingleThread
+satinSingleThread: src/satinSingleThread.c
+	gcc src/satinSingleThread.c -lm -o satinSingleThread
 
 bench: satin satinSingleThread
 	./satin
