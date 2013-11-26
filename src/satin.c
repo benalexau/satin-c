@@ -38,27 +38,31 @@ typedef struct {
     laser laserData;
 } satin_thread_args;
 
-void calculate();
+_Bool calculate(_Bool concurrent);
 int getInputPowers(int inputPowers[]);
 int getLaserData(laser laserData[]);
 void *satinThread(void *arg);
 void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData);
 
-int main(void) {
+int main(int argc, char* argv[]) {
 
+    int rc = 0;
     struct timeval tp;
     double start, end;
 
     gettimeofday(&tp, NULL);
     start = tp.tv_sec + (tp.tv_usec / 1E6);
-    calculate();
+    if (!calculate(argc > 1 && strcmp(argv[1], "-concurrent") == 0)) {
+        printf("Failed to complete\n");
+        rc = 1;
+    }
     gettimeofday(&tp, NULL);
     end = tp.tv_sec + (tp.tv_usec / 1E6);
     printf("The time was %4.2f seconds.\n", end - start);
-    return 0;
+    return rc;
 }
 
-void calculate() {
+_Bool calculate(_Bool concurrent) {
 
     int i, pNum, lNum, inputPowers[N];
     laser laserData[N];
@@ -66,9 +70,9 @@ void calculate() {
     pNum = getInputPowers(inputPowers);
     lNum = getLaserData(laserData);
 
-    int createdThreads = 0;
     pthread_t threads[lNum];
     satin_thread_args thread_args[lNum];
+    int createdThreads = 0;
 
     for (i = 0; i < lNum; i++) {
         thread_args[i].pNum = pNum;
@@ -84,6 +88,8 @@ void calculate() {
             exit(EXIT_FAILURE);
         }
     }
+
+    return 1 == 1;
 }
 
 int getInputPowers(int inputPowers[]) {
@@ -120,8 +126,9 @@ int getLaserData(laser laserData[]) {
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fd, "%s %f %d %s\n", laserData[i].outputFile, &laserData[i].smallSignalGain, &laserData[i].dischargePressure, laserData[i].carbonDioxide) != EOF) {
-         i++;
+    while (fscanf(fd, "%s %f %d %s\n", laserData[i].outputFile, &laserData[i].smallSignalGain,
+            &laserData[i].dischargePressure, laserData[i].carbonDioxide) != EOF) {
+        i++;
     }
 
     if (fclose(fd) == EOF) {
@@ -137,10 +144,10 @@ void *satinThread(void *arg) {
     satin_thread_args* thread_args = (satin_thread_args*) arg;
     int i, j;
     time_t the_time;
-    FILE *fd;
     gaussian *gaussianData = malloc(16 * sizeof(gaussian));
     laser laserData = thread_args->laserData;
     char *outputFile = laserData.outputFile;
+    FILE *fd;
 
     if ((fd = fopen(outputFile, "w+")) == NULL) {
         printf("Error opening %s\n", outputFile);
