@@ -34,14 +34,14 @@ typedef struct {
 } gaussian;
 
 typedef struct {
-    int pNum, inputPowers[N];
+    int pNum, inputPowers[N], count;
     laser laserData;
-} satin_thread_args;
+} satin_process_args;
 
 _Bool calculate(_Bool concurrent);
 int getInputPowers(int inputPowers[]);
 int getLaserData(laser laserData[]);
-void *satinThread(void *arg);
+void *process(void *arg);
 void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData);
 
 int main(int argc, char* argv[]) {
@@ -64,32 +64,40 @@ int main(int argc, char* argv[]) {
 
 _Bool calculate(_Bool concurrent) {
 
-    int i, pNum, lNum, inputPowers[N];
+    int i, pNum, lNum, inputPowers[N], total;
     laser laserData[N];
 
     pNum = getInputPowers(inputPowers);
     lNum = getLaserData(laserData);
 
     pthread_t threads[lNum];
-    satin_thread_args thread_args[lNum];
-    int createdThreads = 0;
+    satin_process_args process_args[lNum];
 
+    total = 0;
     for (i = 0; i < lNum; i++) {
-        thread_args[i].pNum = pNum;
-        memcpy(thread_args[i].inputPowers, inputPowers, sizeof(inputPowers));
-        thread_args[i].laserData = laserData[i];
+        process_args[i].pNum = pNum;
+        memcpy(process_args[i].inputPowers, inputPowers, sizeof(inputPowers));
+        process_args[i].laserData = laserData[i];
 
-        if (pthread_create(&threads[i], NULL, satinThread, &thread_args[i]) == 0) {
-            createdThreads++;
-        }
-    }
-    for (i = 0; i < createdThreads; i++) {
-        if (pthread_join(threads[i], NULL) != 0) {
-            exit(EXIT_FAILURE);
+        if (concurrent) {
+            pthread_create(&threads[i], NULL, process, &process_args[i]);
+        } else {
+            process(&process_args[i]);
+            total += process_args[i].count;
         }
     }
 
-    return 1 == 1;
+    if (concurrent) {
+        for (i = 0; i < lNum; i++) {
+            if (pthread_join(threads[i], NULL) == 0) {
+                total += process_args[i].count;
+            } else {
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    return total == pNum * lNum;
 }
 
 int getInputPowers(int inputPowers[]) {
@@ -104,7 +112,7 @@ int getInputPowers(int inputPowers[]) {
     }
 
     while (fscanf(fd, "%d \n", &inputPowers[i]) != EOF) {
-       i++;
+        i++;
     }
 
     if (fclose(fd) == EOF) {
@@ -139,14 +147,14 @@ int getLaserData(laser laserData[]) {
     return i;
 }
 
-void *satinThread(void *arg) {
+void *process(void *arg) {
 
-    satin_thread_args* thread_args = (satin_thread_args*) arg;
-    int i, j;
+    int i, j, count;
     time_t the_time;
-    gaussian *gaussianData = malloc(16 * sizeof(gaussian));
-    laser laserData = thread_args->laserData;
+    satin_process_args* process_args = (satin_process_args*) arg;
+    laser laserData = process_args->laserData;
     char *outputFile = laserData.outputFile;
+    gaussian *gaussianData = malloc(16 * sizeof(gaussian));
     FILE *fd;
 
     if ((fd = fopen(outputFile, "w+")) == NULL) {
@@ -159,15 +167,18 @@ void *satinThread(void *arg) {
             "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
             ctime(&the_time), laserData.dischargePressure, laserData.smallSignalGain, laserData.carbonDioxide);
 
-    for (i = 0; i < thread_args->pNum; i++) {
-        gaussianCalculation(thread_args->inputPowers[i], laserData.smallSignalGain, gaussianData);
+    count = 0;
+    for (i = 0; i < process_args->pNum; i++) {
+        gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, gaussianData);
         for (j = 0; j < sizeof(*gaussianData); j++) {
             int inputPower = gaussianData[j].inputPower;
             double outputPower = gaussianData[j].outputPower;
             fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower,
                     gaussianData[j].saturationIntensity, log(outputPower / inputPower), outputPower - inputPower);
         }
+        count++;
     }
+    process_args->count = count;
 
     free((gaussian*) gaussianData);
     time(&the_time);
@@ -179,7 +190,6 @@ void *satinThread(void *arg) {
         exit(EXIT_FAILURE);
     }
 
-    pthread_exit(NULL);
     return NULL;
 }
 
@@ -207,7 +217,7 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussi
     for (saturationIntensity = 10E3; saturationIntensity <= 25E3; saturationIntensity += 1E3) {
         double outputPower = 0.0;
         double expr3 = saturationIntensity * expr2;
-        for (r = 0; r <= 0.5; r += DR) {
+        for (r = 0.0; r <= 0.5f; r += DR) {
             double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(RAD, 2));
             exprtemp = expr;
             for (j = 0; j < 8001; j++) {
