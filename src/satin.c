@@ -195,16 +195,17 @@ void *process(void *arg) {
 
 void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData) {
 
-    int i, j, saturationIntensity;
+    int i, j, incr, saturationIntensity;
     float r;
     double *expr, *exprtemp;
 
-    if ((exprtemp = expr = (double*) malloc(8 * 8001)) == NULL) {
+    incr = 8001;
+    if ((exprtemp = expr = (double*) malloc(8 * incr)) == NULL) {
         printf("Not enough memory to allocate buffer\n");
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < 8001; i++) {
+    for (i = 0; i < incr; i++) {
         double zInc = ((double) i - 4000) / 25;
         *exprtemp = zInc * 2 * DZ / (Z12 + pow(zInc, 2));
         exprtemp++;
@@ -220,7 +221,7 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussi
         for (r = 0.0; r <= 0.5f; r += DR) {
             double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(RAD, 2));
             exprtemp = expr;
-            for (j = 0; j < 8001; j++) {
+            for (j = 0; j < incr; j++) {
                 outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - *exprtemp);
                 exprtemp++;
             }
