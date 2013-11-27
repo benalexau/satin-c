@@ -20,6 +20,7 @@
 #define Z1    (M_PI * (W1 * W1) / LAMDA)
 #define Z12   Z1 * Z1
 #define EXPR  2 * M_PI * DR
+#define INCR  8001
 
 typedef struct {
     char outputFile[9];
@@ -195,17 +196,16 @@ void *process(void *arg) {
 
 void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData) {
 
-    int i, j, incr, saturationIntensity;
+    int i, j, saturationIntensity;
     float r;
     double *expr, *exprtemp;
 
-    incr = 8001;
-    if ((exprtemp = expr = (double*) malloc(8 * incr)) == NULL) {
+    if ((exprtemp = expr = (double*) malloc(8 * INCR)) == NULL) {
         printf("Not enough memory to allocate buffer\n");
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < incr; i++) {
+    for (i = 0; i < INCR; i++) {
         double zInc = ((double) i - 4000) / 25;
         *exprtemp = zInc * 2 * DZ / (Z12 + pow(zInc, 2));
         exprtemp++;
@@ -221,7 +221,7 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussi
         for (r = 0.0; r <= 0.5f; r += DR) {
             double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(RAD, 2));
             exprtemp = expr;
-            for (j = 0; j < incr; j++) {
+            for (j = 0; j < INCR; j++) {
                 outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - *exprtemp);
                 exprtemp++;
             }
