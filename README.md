@@ -7,3 +7,12 @@ Compile with:
 
 gcc satin.c -lm -lpthread -o ./satin
 
+Run with:
+
+./satin 
+
+or
+
+./satin -concurrent
+
+
