@@ -16,11 +16,16 @@
 #define DR    2E-3
 #define DZ    4E-2
 #define LAMDA 10.6E-3
-#define AREA  (M_PI * (RAD * RAD))
-#define Z1    (M_PI * (W1 * W1) / LAMDA)
+#define AREA  M_PI * (RAD * RAD)
+#define Z1    M_PI * (W1 * W1) / LAMDA
 #define Z12   Z1 * Z1
 #define EXPR  2 * M_PI * DR
 #define INCR  8001
+
+typedef struct {
+    int inputPower, saturationIntensity;
+    double outputPower;
+} gaussian;
 
 typedef struct {
     char outputFile[9];
@@ -28,11 +33,6 @@ typedef struct {
     int dischargePressure;
     char carbonDioxide[3];
 } laser;
-
-typedef struct {
-    int inputPower, saturationIntensity;
-    double outputPower;
-} gaussian;
 
 typedef struct {
     int pNum, inputPowers[N], count;
@@ -181,7 +181,9 @@ void *process(void *arg) {
     }
     process_args->count = count;
 
-    free((gaussian*) gaussianData);
+    free(gaussianData);
+    gaussianData = NULL;
+
     time(&the_time);
     fprintf(fd, "\nEnd date: %s\n", ctime(&the_time));
     fflush(fd);
@@ -234,5 +236,6 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussi
         i++;
     }
 
-    free((double*) expr);
+    free(expr);
+    expr = exprtemp = NULL;
 }
