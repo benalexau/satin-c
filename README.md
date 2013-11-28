@@ -5,7 +5,7 @@ CO2 Laser Saturation Intensity calculation in C.
 
 Compile with:
 
-gcc satin.c -lm -lpthread -o ./satin
+gcc -O3 src/satin.c -lm -lpthread -o satin
 
 Run with:
 
