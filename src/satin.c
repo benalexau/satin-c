@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     }
     gettimeofday(&tp, NULL);
     end = tp.tv_sec + (tp.tv_usec / 1E6);
-    printf("The time was %4.2f seconds.\n", end - start);
+    printf("The time was %6.3f seconds.\n", end - start);
     return rc;
 }
 
