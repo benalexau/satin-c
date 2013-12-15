@@ -8,8 +8,8 @@
 #include <sys/time.h>
 #include <string.h>
 #include <pthread.h>
+#include "satin.h"
 
-#define N     10
 #define RAD   18E-2
 #define W1    3E-1
 #define DR    2E-3
@@ -20,29 +20,6 @@
 #define Z12   Z1 * Z1
 #define EXPR  2 * M_PI * DR
 #define INCR  8001
-
-typedef struct {
-    int inputPower, saturationIntensity;
-    double outputPower;
-} gaussian;
-
-typedef struct {
-    char outputFile[9];
-    float smallSignalGain;
-    int dischargePressure;
-    char carbonDioxide[3];
-} laser;
-
-typedef struct {
-    int pNum, inputPowers[N], count;
-    laser laserData;
-} satin_process_args;
-
-_Bool calculate(_Bool concurrent);
-int getInputPowers(int inputPowers[]);
-int getLaserData(laser laserData[]);
-void *process(void *arg);
-void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData);
 
 int main(int argc, char* argv[]) {
 
