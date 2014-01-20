@@ -41,11 +41,11 @@ int main(int argc, char* argv[]) {
 
 _Bool calculate(_Bool concurrent) {
 
-    int i, pNum, lNum, inputPowers[N], total;
-    laser laserData[N];
+    int i, pNum, lNum, total, *inputPowers;
+    laser *laserData;
 
-    pNum = getInputPowers(inputPowers);
-    lNum = getLaserData(laserData);
+    pNum = getInputPowers(&inputPowers);
+    lNum = getLaserData(&laserData);
 
     pthread_t threads[lNum];
     satin_process_args process_args[lNum];
@@ -53,7 +53,7 @@ _Bool calculate(_Bool concurrent) {
     total = 0;
     for (i = 0; i < lNum; i++) {
         process_args[i].pNum = pNum;
-        memcpy(process_args[i].inputPowers, inputPowers, sizeof(inputPowers));
+        process_args[i].inputPowers = inputPowers;
         process_args[i].laserData = laserData[i];
 
         if (concurrent) {
@@ -74,23 +74,36 @@ _Bool calculate(_Bool concurrent) {
         }
     }
 
+    free(inputPowers);
+    free(laserData);
+
     return total == pNum * lNum;
 }
 
-int getInputPowers(int inputPowers[]) {
+int getInputPowers(int **array) {
 
-    int i = 0;
+    int i = 0, size, *inputPowers;
     char *inputPowerFile = "pin.dat";
     FILE *fd;
+
+    size = N;
+    if ((inputPowers = malloc(size * sizeof(int))) == NULL) {
+        printf(ERR_MEM);
+        exit(EXIT_FAILURE);
+    }
 
     if ((fd = fopen(inputPowerFile, "r")) == NULL) {
         printf("Error opening %s\n", inputPowerFile);
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fd, "%d \n", &inputPowers[i]) != EOF) {
+    while (fscanf(fd, "%d\n", &inputPowers[i]) != EOF) {
         i++;
+        if (i >= size) {
+            inputPowers = realloc(inputPowers, (size *= 2) * sizeof(int));
+        }
     }
+    *array = inputPowers;
 
     if (fclose(fd) == EOF) {
         printf("Error closing %s\n", inputPowerFile);
@@ -100,11 +113,18 @@ int getInputPowers(int inputPowers[]) {
     return i;
 }
 
-int getLaserData(laser laserData[]) {
+int getLaserData(laser **array) {
 
-    int i = 0;
+    int i = 0, size;
     char *gainMediumDataFile = "laser.dat";
+    laser *laserData;
     FILE *fd;
+
+    size = N;
+    if ((laserData = malloc(size * sizeof(laser))) == NULL) {
+        printf(ERR_MEM);
+        exit(EXIT_FAILURE);
+    }
 
     if ((fd = fopen(gainMediumDataFile, "r")) == NULL) {
         printf("Error opening %s\n", gainMediumDataFile);
@@ -114,7 +134,11 @@ int getLaserData(laser laserData[]) {
     while (fscanf(fd, "%s %f %d %s\n", laserData[i].outputFile, &laserData[i].smallSignalGain,
             &laserData[i].dischargePressure, laserData[i].carbonDioxide) != EOF) {
         i++;
+        if (i >= size) {
+            laserData = realloc(laserData, (size *= 2) * sizeof(laser));
+        }
     }
+    *array = laserData;
 
     if (fclose(fd) == EOF) {
         printf("Error closing %s\n", gainMediumDataFile);
@@ -131,8 +155,13 @@ void *process(void *arg) {
     satin_process_args* process_args = (satin_process_args*) arg;
     laser laserData = process_args->laserData;
     char *outputFile = laserData.outputFile;
-    gaussian *gaussianData = malloc(16 * sizeof(gaussian));
+    gaussian *gaussianData;
     FILE *fd;
+
+    if ((gaussianData = malloc(16 * sizeof(gaussian))) == NULL) {
+        printf(ERR_MEM);
+        exit(EXIT_FAILURE);
+    }
 
     if ((fd = fopen(outputFile, "w+")) == NULL) {
         printf("Error opening %s\n", outputFile);
@@ -158,7 +187,6 @@ void *process(void *arg) {
     process_args->count = count;
 
     free(gaussianData);
-    gaussianData = NULL;
 
     time(&the_time);
     fprintf(fd, "\nEnd date: %s\n", ctime(&the_time));
@@ -178,8 +206,8 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussi
     float r;
     double *expr, *exprtemp;
 
-    if ((exprtemp = expr = (double*) malloc(8 * INCR)) == NULL) {
-        printf("Not enough memory to allocate buffer\n");
+    if ((exprtemp = expr = malloc(INCR * sizeof(double))) == NULL) {
+        printf(ERR_MEM);
         exit(EXIT_FAILURE);
     }
 
@@ -213,5 +241,4 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussi
     }
 
     free(expr);
-    expr = exprtemp = NULL;
 }
