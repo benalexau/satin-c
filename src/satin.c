@@ -192,7 +192,6 @@ void *process(void *arg) {
     }
     process_args->count = count;
 
-
     time(&the_time);
     fprintf(fd, "\nEnd date: %s\n", ctime(&the_time));
     fflush(fd);
