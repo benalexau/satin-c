@@ -204,17 +204,16 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussi
 
     int i, j, saturationIntensity;
     float r;
-    double *expr, *exprtemp;
+    double *expr1;
 
-    if ((exprtemp = expr = malloc(INCR * sizeof(double))) == NULL) {
+    if ((expr1 = malloc(INCR * sizeof(double))) == NULL) {
         printf(ERR_MEM);
         exit(EXIT_FAILURE);
     }
 
     for (i = 0; i < INCR; i++) {
         double zInc = ((double) i - 4000) / 25;
-        *exprtemp = zInc * 2 * DZ / (Z12 + pow(zInc, 2));
-        exprtemp++;
+        expr1[i] = zInc * 2 * DZ / (Z12 + pow(zInc, 2));
     }
 
     double inputIntensity = 2 * inputPower / AREA;
@@ -226,19 +225,16 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussi
         double expr3 = saturationIntensity * expr2;
         for (r = 0.0; r <= 0.5f; r += DR) {
             double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(RAD, 2));
-            exprtemp = expr;
             for (j = 0; j < INCR; j++) {
-                outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - *exprtemp);
-                exprtemp++;
+                outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j]);
             }
             outputPower += (outputIntensity * EXPR * r);
         }
-
         gaussianData[i].inputPower = inputPower;
         gaussianData[i].saturationIntensity = saturationIntensity;
         gaussianData[i].outputPower = outputPower;
         i++;
     }
 
-    free(expr);
+    free(expr1);
 }
