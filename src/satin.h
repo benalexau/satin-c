@@ -28,6 +28,6 @@ _Bool calculate(_Bool concurrent);
 int getInputPowers(int **inputPowers);
 int getLaserData(laser **laserData);
 void *process(void *arg);
-void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData);
+void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData);
 
 #endif

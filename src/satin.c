@@ -168,11 +168,6 @@ void *process(void *arg) {
     gaussian *gaussianData;
     FILE *fd;
 
-    if ((gaussianData = malloc(16 * sizeof(gaussian))) == NULL) {
-        printf(ERR_MEM);
-        exit(EXIT_FAILURE);
-    }
-
     if ((fd = fopen(outputFile, "w+")) == NULL) {
         printf("Error opening %s\n", outputFile);
         exit(EXIT_FAILURE);
@@ -185,7 +180,7 @@ void *process(void *arg) {
 
     count = 0;
     for (i = 0; i < process_args->pNum; i++) {
-        gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, gaussianData);
+        gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussianData);
         for (j = 0; j < sizeof(*gaussianData); j++) {
             int inputPower = gaussianData[j].inputPower;
             double outputPower = gaussianData[j].outputPower;
@@ -210,11 +205,17 @@ void *process(void *arg) {
     return NULL;
 }
 
-void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussianData) {
+void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData) {
 
     int i, j, saturationIntensity;
     float r;
     double *expr1;
+    gaussian *gaussians;
+
+    if ((gaussians = malloc(16 * sizeof(gaussian))) == NULL) {
+        printf(ERR_MEM);
+        exit(EXIT_FAILURE);
+    }
 
     if ((expr1 = malloc(INCR * sizeof(double))) == NULL) {
         printf(ERR_MEM);
@@ -240,11 +241,12 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian *gaussi
             }
             outputPower += (outputIntensity * EXPR * r);
         }
-        gaussianData[i].inputPower = inputPower;
-        gaussianData[i].saturationIntensity = saturationIntensity;
-        gaussianData[i].outputPower = outputPower;
+        gaussians[i].inputPower = inputPower;
+        gaussians[i].saturationIntensity = saturationIntensity;
+        gaussians[i].outputPower = outputPower;
         i++;
     }
+    *gaussianData = gaussians;
 
     free(expr1);
 }
