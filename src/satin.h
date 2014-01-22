@@ -20,11 +20,11 @@ typedef struct {
 } laser;
 
 typedef struct {
-    int pNum, *inputPowers, count;
+    int pNum, *inputPowers;
     laser laserData;
 } satin_process_args;
 
-_Bool calculate(_Bool concurrent);
+void calculate(_Bool concurrent);
 int getInputPowers(int **inputPowers);
 int getLaserData(laser **laserData);
 void *process(void *arg);

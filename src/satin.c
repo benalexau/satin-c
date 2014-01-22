@@ -22,24 +22,21 @@
 
 int main(int argc, char* argv[]) {
 
-    int rc = 0;
     struct timeval t1, t2;
     double elapsedTime;
 
     gettimeofday(&t1, NULL);
-    if (!calculate(argc > 1 && strcmp(argv[1], "-concurrent") == 0)) {
-        printf("Failed to complete\n");
-        rc = 1;
-    }
+    calculate(argc > 1 && strcmp(argv[1], "-concurrent") == 0);
     gettimeofday(&t2, NULL);
+
     elapsedTime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1E6;
     printf("The time was %6.3f seconds.\n", elapsedTime);
-    return rc;
+    return EXIT_SUCCESS;
 }
 
-_Bool calculate(_Bool concurrent) {
+void calculate(_Bool concurrent) {
 
-    int i, pNum, *inputPowers, lNum, total;
+    int i, pNum, *inputPowers, lNum;
     laser *laserData;
 
     pNum = getInputPowers(&inputPowers);
@@ -48,7 +45,6 @@ _Bool calculate(_Bool concurrent) {
     pthread_t threads[lNum];
     satin_process_args process_args[lNum];
 
-    total = 0;
     for (i = 0; i < lNum; i++) {
         process_args[i].pNum = pNum;
         process_args[i].inputPowers = inputPowers;
@@ -58,15 +54,12 @@ _Bool calculate(_Bool concurrent) {
             pthread_create(&threads[i], NULL, process, &process_args[i]);
         } else {
             process(&process_args[i]);
-            total += process_args[i].count;
         }
     }
 
     if (concurrent) {
         for (i = 0; i < lNum; i++) {
-            if (pthread_join(threads[i], NULL) == 0) {
-                total += process_args[i].count;
-            } else {
+            if (pthread_join(threads[i], NULL) != 0) {
                 exit(EXIT_FAILURE);
             }
         }
@@ -74,8 +67,6 @@ _Bool calculate(_Bool concurrent) {
 
     free(inputPowers);
     free(laserData);
-
-    return total == pNum * lNum;
 }
 
 int getInputPowers(int **inputPowers) {
@@ -190,7 +181,6 @@ void *process(void *arg) {
         free(gaussianData);
         count++;
     }
-    process_args->count = count;
 
     time(&the_time);
     fprintf(fd, "\nEnd date: %s\n", ctime(&the_time));
