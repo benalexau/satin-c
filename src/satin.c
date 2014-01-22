@@ -71,12 +71,12 @@ void calculate(_Bool concurrent) {
 
 int getInputPowers(int **inputPowers) {
 
-    int i = 0, size, *ptr1, *ptr2;
+    int i = 0, size, *ptr;
     char *inputPowerFile = "pin.dat";
     FILE *fd;
 
     size = N;
-    if ((ptr1 = malloc(size * sizeof(int))) == NULL) {
+    if ((ptr = malloc(size * sizeof(int))) == NULL) {
         printf(ERR_MEM);
         exit(EXIT_FAILURE);
     }
@@ -86,19 +86,16 @@ int getInputPowers(int **inputPowers) {
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fd, "%d\n", &ptr1[i]) != EOF) {
+    while (fscanf(fd, "%d\n", &ptr[i]) != EOF) {
         i++;
         if (i >= size) {
-            ptr2 = realloc(ptr1, (size *= 2) * sizeof(int));
-            if (ptr2 == NULL) {
+            if ((ptr = realloc(ptr, (size *= 2) * sizeof(int))) == NULL) {
                 printf("Failed to reallocate memory\n");
                 exit(EXIT_FAILURE);
-            } else {
-                ptr1 = ptr2;
             }
         }
     }
-    *inputPowers = ptr1;
+    *inputPowers = ptr;
 
     if (fclose(fd) == EOF) {
         printf("Error closing %s\n", inputPowerFile);
@@ -112,11 +109,11 @@ int getLaserData(laser **laserData) {
 
     int i = 0, size;
     char *gainMediumDataFile = "laser.dat";
-    laser *ptr1, *ptr2;
+    laser *ptr;
     FILE *fd;
 
     size = N;
-    if ((ptr1 = malloc(size * sizeof(laser))) == NULL) {
+    if ((ptr = malloc(size * sizeof(laser))) == NULL) {
         printf(ERR_MEM);
         exit(EXIT_FAILURE);
     }
@@ -126,20 +123,17 @@ int getLaserData(laser **laserData) {
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fd, "%s %f %d %s\n", ptr1[i].outputFile, &ptr1[i].smallSignalGain, &ptr1[i].dischargePressure,
-            ptr1[i].carbonDioxide) != EOF) {
+    while (fscanf(fd, "%s %f %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure,
+            ptr[i].carbonDioxide) != EOF) {
         i++;
         if (i >= size) {
-            ptr2 = realloc(ptr1, (size *= 2) * sizeof(laser));
-            if (ptr2 == NULL) {
+            if ((ptr = realloc(ptr, (size *= 2) * sizeof(laser))) == NULL) {
                 printf("Failed to reallocate memory\n");
                 exit(EXIT_FAILURE);
-            } else {
-                ptr1 = ptr2;
             }
         }
     }
-    *laserData = ptr1;
+    *laserData = ptr;
 
     if (fclose(fd) == EOF) {
         printf("Error closing %s\n", gainMediumDataFile);
