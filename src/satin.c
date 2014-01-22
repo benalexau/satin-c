@@ -168,7 +168,6 @@ void *process(void *arg) {
             "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
             ctime(&the_time), laserData.dischargePressure, laserData.smallSignalGain, laserData.carbonDioxide);
 
-    count = 0;
     for (i = 0; i < process_args->pNum; i++) {
         gaussian *gaussianData;
         gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussianData);
@@ -179,7 +178,6 @@ void *process(void *arg) {
                     gaussianData[j].saturationIntensity, log(outputPower / inputPower), outputPower - inputPower);
         }
         free(gaussianData);
-        count++;
     }
 
     time(&the_time);
