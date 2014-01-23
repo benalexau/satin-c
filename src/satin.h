@@ -4,8 +4,7 @@
 #ifndef SATIN_H
 #define SATIN_H
 
-#define N       8
-#define ERR_MEM "Failed to allocate memory\n"
+#define N  8
 
 typedef struct {
     int inputPower, saturationIntensity;
@@ -29,5 +28,6 @@ int getInputPowers(int **inputPowers);
 int getLaserData(laser **laserData);
 void *process(void *arg);
 void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData);
+void error();
 
 #endif

@@ -60,7 +60,8 @@ void calculate(_Bool concurrent) {
     if (concurrent) {
         for (i = 0; i < lNum; i++) {
             if (pthread_join(threads[i], NULL) != 0) {
-                exit(EXIT_FAILURE);
+                printf("Failed to join threads\n");
+                error();
             }
         }
     }
@@ -77,13 +78,13 @@ int getInputPowers(int **inputPowers) {
 
     size = N;
     if ((ptr = malloc(size * sizeof(int))) == NULL) {
-        printf(ERR_MEM);
-        exit(EXIT_FAILURE);
+        printf("Failed to allocate memory\n");
+        error();
     }
 
     if ((fd = fopen(inputPowerFile, "r")) == NULL) {
         printf("Error opening %s\n", inputPowerFile);
-        exit(EXIT_FAILURE);
+        error();
     }
 
     while (fscanf(fd, "%d\n", &ptr[i]) != EOF) {
@@ -91,7 +92,7 @@ int getInputPowers(int **inputPowers) {
         if (i >= size) {
             if ((ptr = realloc(ptr, (size *= 2) * sizeof(int))) == NULL) {
                 printf("Failed to reallocate memory\n");
-                exit(EXIT_FAILURE);
+                error();
             }
         }
     }
@@ -99,7 +100,7 @@ int getInputPowers(int **inputPowers) {
 
     if (fclose(fd) == EOF) {
         printf("Error closing %s\n", inputPowerFile);
-        exit(EXIT_FAILURE);
+        error();
     }
 
     return i;
@@ -108,19 +109,19 @@ int getInputPowers(int **inputPowers) {
 int getLaserData(laser **laserData) {
 
     int i = 0, size;
-    char *gainMediumDataFile = "laser.dat";
+    char *laserDataFile = "laser.dat";
     laser *ptr;
     FILE *fd;
 
     size = N;
     if ((ptr = malloc(size * sizeof(laser))) == NULL) {
-        printf(ERR_MEM);
-        exit(EXIT_FAILURE);
+        printf("Failed to reallocate memory\n");
+        error();
     }
 
-    if ((fd = fopen(gainMediumDataFile, "r")) == NULL) {
-        printf("Error opening %s\n", gainMediumDataFile);
-        exit(EXIT_FAILURE);
+    if ((fd = fopen(laserDataFile, "r")) == NULL) {
+        printf("Error opening %s\n", laserDataFile);
+        error();
     }
 
     while (fscanf(fd, "%s %f %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure,
@@ -129,15 +130,15 @@ int getLaserData(laser **laserData) {
         if (i >= size) {
             if ((ptr = realloc(ptr, (size *= 2) * sizeof(laser))) == NULL) {
                 printf("Failed to reallocate memory\n");
-                exit(EXIT_FAILURE);
+                error();
             }
         }
     }
     *laserData = ptr;
 
     if (fclose(fd) == EOF) {
-        printf("Error closing %s\n", gainMediumDataFile);
-        exit(EXIT_FAILURE);
+        printf("Error closing %s\n", laserDataFile);
+        error();
     }
 
     return i;
@@ -154,7 +155,7 @@ void *process(void *arg) {
 
     if ((fd = fopen(outputFile, "w+")) == NULL) {
         printf("Error opening %s\n", outputFile);
-        exit(EXIT_FAILURE);
+        error();
     }
 
     time(&the_time);
@@ -180,7 +181,7 @@ void *process(void *arg) {
 
     if (fclose(fd) == EOF) {
         printf("Error closing %s\n", outputFile);
-        exit(EXIT_FAILURE);
+        error();
     }
 
     return NULL;
@@ -194,13 +195,13 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gauss
     gaussian *gaussians;
 
     if ((gaussians = malloc(16 * sizeof(gaussian))) == NULL) {
-        printf(ERR_MEM);
-        exit(EXIT_FAILURE);
+        printf("Failed to allocate memory\n");
+        error();
     }
 
     if ((expr1 = malloc(INCR * sizeof(double))) == NULL) {
-        printf(ERR_MEM);
-        exit(EXIT_FAILURE);
+        printf("Failed to allocate memory\n");
+        error();
     }
 
     for (i = 0; i < INCR; i++) {
@@ -230,4 +231,9 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gauss
     *gaussianData = gaussians;
 
     free(expr1);
+}
+
+void error() {
+
+    exit(EXIT_FAILURE);
 }
