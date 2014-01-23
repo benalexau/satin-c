@@ -115,7 +115,7 @@ int getLaserData(laser **laserData) {
 
     size = N;
     if ((ptr = malloc(size * sizeof(laser))) == NULL) {
-        printf("Failed to reallocate memory\n");
+        printf("Failed to allocate memory\n");
         error();
     }
 
