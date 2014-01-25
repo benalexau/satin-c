@@ -124,8 +124,7 @@ int getLaserData(laser **laserData) {
         error();
     }
 
-    while (fscanf(fd, "%s %f %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure,
-            ptr[i].carbonDioxide) != EOF) {
+    while (fscanf(fd, "%s %f %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure, ptr[i].carbonDioxide) != EOF) {
         i++;
         if (i >= size) {
             if ((ptr = realloc(ptr, (size *= 2) * sizeof(laser))) == NULL) {
@@ -146,7 +145,7 @@ int getLaserData(laser **laserData) {
 
 void *process(void *arg) {
 
-    int i, j, count;
+    int i, j;
     time_t the_time;
     satin_process_args* process_args = (satin_process_args*) arg;
     laser laserData = process_args->laserData;
