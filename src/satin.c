@@ -141,6 +141,7 @@ void *process(void *arg) {
     satin_process_args* process_args = (satin_process_args*) arg;
     laser laserData = process_args->laserData;
     char *outputFile = laserData.outputFile;
+    gaussian *gaussianData;
     FILE *fd;
 
     if ((fd = fopen(outputFile, "w+")) == NULL) {
@@ -153,7 +154,6 @@ void *process(void *arg) {
             ctime(&the_time), laserData.dischargePressure, laserData.smallSignalGain, laserData.carbonDioxide);
 
     for (i = 0; i < process_args->pNum; i++) {
-        gaussian *gaussianData;
         gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussianData);
         for (j = 0; j < sizeof(*gaussianData); j++) {
             int inputPower = gaussianData[j].inputPower;
@@ -161,7 +161,6 @@ void *process(void *arg) {
             fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower,
                     gaussianData[j].saturationIntensity, log(outputPower / inputPower), outputPower - inputPower);
         }
-        free(gaussianData);
     }
 
     time(&the_time);
@@ -172,6 +171,7 @@ void *process(void *arg) {
         error("Error closing output file");
     }
 
+    free(gaussianData);
     return NULL;
 }
 
