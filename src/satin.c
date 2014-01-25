@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <string.h>
 #include <pthread.h>
+#include <errno.h>
 #include "satin.h"
 
 #define RAD   18E-2
@@ -60,7 +61,7 @@ void calculate(_Bool concurrent) {
     if (concurrent) {
         for (i = 0; i < lNum; i++) {
             if (pthread_join(threads[i], NULL) != 0) {
-                error("Failed to join threads");
+                perror("Failed to join threads");
             }
         }
     }
@@ -75,27 +76,31 @@ int getInputPowers(int **inputPowers) {
     char *inputPowerFile = "pin.dat";
     FILE *fd;
 
-    size = N;
-    if ((ptr = malloc(size * sizeof(int))) == NULL) {
-        error("Failed to allocate memory");
+    if ((fd = fopen(inputPowerFile, "r")) == NULL) {
+        fprintf(stderr, "Error opening %s: %s\n", inputPowerFile, strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
-    if ((fd = fopen(inputPowerFile, "r")) == NULL) {
-        error("Error opening input powers file");
+    size = N;
+    if ((ptr = malloc(size * sizeof(int))) == NULL) {
+        perror("Failed to allocate memory");
+        exit(EXIT_FAILURE);
     }
 
     while (fscanf(fd, "%d\n", &ptr[i]) != EOF) {
         i++;
         if (i >= size) {
             if ((ptr = realloc(ptr, (size *= 2) * sizeof(int))) == NULL) {
-                error("Failed to reallocate memory");
+                perror("Failed to reallocate memory");
+                exit(EXIT_FAILURE);
             }
         }
     }
     *inputPowers = ptr;
 
     if (fclose(fd) == EOF) {
-        error("Error closing input powers file");
+        fprintf(stderr, "Error closing %s: %s\n", inputPowerFile, strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
     return i;
@@ -108,27 +113,31 @@ int getLaserData(laser **laserData) {
     laser *ptr;
     FILE *fd;
 
-    size = N;
-    if ((ptr = malloc(size * sizeof(laser))) == NULL) {
-        error("Failed to allocate memory");
+    if ((fd = fopen(laserDataFile, "r")) == NULL) {
+        fprintf(stderr, "Error opening %s: %s\n", laserDataFile, strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
-    if ((fd = fopen(laserDataFile, "r")) == NULL) {
-        error("Error opening laser data file");
+    size = N;
+    if ((ptr = malloc(size * sizeof(laser))) == NULL) {
+        perror("Failed to allocate memory");
+        exit(EXIT_FAILURE);
     }
 
     while (fscanf(fd, "%s %f %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure, ptr[i].carbonDioxide) != EOF) {
         i++;
         if (i >= size) {
             if ((ptr = realloc(ptr, (size *= 2) * sizeof(laser))) == NULL) {
-                error("Failed to reallocate memory");
+                perror("Failed to reallocate memory");
+                exit(EXIT_FAILURE);
             }
         }
     }
     *laserData = ptr;
 
     if (fclose(fd) == EOF) {
-        error("Error closing laser data file");
+        fprintf(stderr, "Error closing %s: %s\n", laserDataFile, strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
     return i;
@@ -145,7 +154,8 @@ void *process(void *arg) {
     FILE *fd;
 
     if ((fd = fopen(outputFile, "w+")) == NULL) {
-        error("Error opening output file");
+        fprintf(stderr, "Error opening %s: %s\n", outputFile, strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
     time(&the_time);
@@ -163,15 +173,16 @@ void *process(void *arg) {
         }
     }
 
+    free(gaussianData);
     time(&the_time);
     fprintf(fd, "\nEnd date: %s\n", ctime(&the_time));
     fflush(fd);
 
     if (fclose(fd) == EOF) {
-        error("Error closing output file");
+        fprintf(stderr, "Error closing %s: %s\n", outputFile, strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
-    free(gaussianData);
     return NULL;
 }
 
@@ -183,11 +194,13 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gauss
     gaussian *gaussians;
 
     if ((gaussians = malloc(16 * sizeof(gaussian))) == NULL) {
-        error("Failed to allocate memory");
+        perror("Failed to allocate memory");
+        exit(EXIT_FAILURE);
     }
 
     if ((expr1 = malloc(INCR * sizeof(double))) == NULL) {
-        error("Failed to allocate memory");
+        perror("Failed to allocate memory");
+        exit(EXIT_FAILURE);
     }
 
     for (i = 0; i < INCR; i++) {
@@ -219,8 +232,3 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gauss
     free(expr1);
 }
 
-void error(char *msg) {
-
-    perror(msg);
-    exit(EXIT_FAILURE);
-}
