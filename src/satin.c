@@ -62,6 +62,7 @@ void calculate(_Bool concurrent) {
         for (i = 0; i < lNum; i++) {
             if (pthread_join(threads[i], NULL) != 0) {
                 perror("Failed to join threads");
+                exit(EXIT_FAILURE);
             }
         }
     }
