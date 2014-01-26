@@ -72,7 +72,7 @@ void calculate(_Bool concurrent) {
 
 int getInputPowers(int **inputPowers) {
 
-    int i = 0, size, *ptr;
+    int i = 0, j, *ptr;
     char *inputPowerFile = "pin.dat";
     FILE *fd;
 
@@ -81,16 +81,16 @@ int getInputPowers(int **inputPowers) {
         exit(EXIT_FAILURE);
     }
 
-    size = N;
-    if ((ptr = malloc(size * sizeof(int))) == NULL) {
+    j = N;
+    if ((ptr = malloc(j * sizeof(int))) == NULL) {
         perror("Failed to allocate memory");
         exit(EXIT_FAILURE);
     }
 
     while (fscanf(fd, "%d\n", &ptr[i]) != EOF) {
         i++;
-        if (i >= size) {
-            if ((ptr = realloc(ptr, (size *= 2) * sizeof(int))) == NULL) {
+        if (i == j) {
+            if ((ptr = realloc(ptr, (j *= 2) * sizeof(int))) == NULL) {
                 perror("Failed to reallocate memory");
                 exit(EXIT_FAILURE);
             }
@@ -108,7 +108,7 @@ int getInputPowers(int **inputPowers) {
 
 int getLaserData(laser **laserData) {
 
-    int i = 0, size;
+    int i = 0, j;
     char *laserDataFile = "laser.dat";
     laser *ptr;
     FILE *fd;
@@ -118,16 +118,16 @@ int getLaserData(laser **laserData) {
         exit(EXIT_FAILURE);
     }
 
-    size = N;
-    if ((ptr = malloc(size * sizeof(laser))) == NULL) {
+    j = N;
+    if ((ptr = malloc(j * sizeof(laser))) == NULL) {
         perror("Failed to allocate memory");
         exit(EXIT_FAILURE);
     }
 
     while (fscanf(fd, "%s %f %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure, ptr[i].carbonDioxide) != EOF) {
         i++;
-        if (i >= size) {
-            if ((ptr = realloc(ptr, (size *= 2) * sizeof(laser))) == NULL) {
+        if (i == j) {
+            if ((ptr = realloc(ptr, (j *= 2) * sizeof(laser))) == NULL) {
                 perror("Failed to reallocate memory");
                 exit(EXIT_FAILURE);
             }
