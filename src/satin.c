@@ -203,8 +203,9 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gauss
         exit(EXIT_FAILURE);
     }
 
+    int incr = (int) floor((double) INCR / 2);
     for (i = 0; i < INCR; i++) {
-        double zInc = ((double) i - 4000) / 25;
+        double zInc = ((double) i - incr) / 25;
         expr1[i] = zInc * 2 * DZ / (Z12 + pow(zInc, 2));
     }
 
