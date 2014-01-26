@@ -89,11 +89,9 @@ int getInputPowers(int **inputPowers) {
 
     while (fscanf(fd, "%d\n", &ptr[i]) != EOF) {
         i++;
-        if (i == j) {
-            if ((ptr = realloc(ptr, (j *= 2) * sizeof(int))) == NULL) {
-                perror("Failed to reallocate memory");
-                exit(EXIT_FAILURE);
-            }
+        if (i == j && (ptr = realloc(ptr, (j *= 2) * sizeof(int))) == NULL) {
+            perror("Failed to reallocate memory");
+            exit(EXIT_FAILURE);
         }
     }
     *inputPowers = ptr;
@@ -126,11 +124,9 @@ int getLaserData(laser **laserData) {
 
     while (fscanf(fd, "%s %f %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure, ptr[i].carbonDioxide) != EOF) {
         i++;
-        if (i == j) {
-            if ((ptr = realloc(ptr, (j *= 2) * sizeof(laser))) == NULL) {
-                perror("Failed to reallocate memory");
-                exit(EXIT_FAILURE);
-            }
+        if (i == j && (ptr = realloc(ptr, (j *= 2) * sizeof(laser))) == NULL) {
+            perror("Failed to reallocate memory");
+            exit(EXIT_FAILURE);
         }
     }
     *laserData = ptr;
