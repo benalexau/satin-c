@@ -73,7 +73,7 @@ void calculate(_Bool concurrent) {
 
 int getInputPowers(int **inputPowers) {
 
-    int i = 0, j, *ptr;
+    int i = 0, j = N, *ptr;
     char *inputPowerFile = "pin.dat";
     FILE *fd;
 
@@ -82,7 +82,6 @@ int getInputPowers(int **inputPowers) {
         exit(EXIT_FAILURE);
     }
 
-    j = N;
     if ((ptr = malloc(j * sizeof(int))) == NULL) {
         perror("Failed to allocate memory");
         exit(EXIT_FAILURE);
@@ -107,7 +106,7 @@ int getInputPowers(int **inputPowers) {
 
 int getLaserData(laser **laserData) {
 
-    int i = 0, j;
+    int i = 0, j = N;
     char *laserDataFile = "laser.dat";
     laser *ptr;
     FILE *fd;
@@ -117,7 +116,6 @@ int getLaserData(laser **laserData) {
         exit(EXIT_FAILURE);
     }
 
-    j = N;
     if ((ptr = malloc(j * sizeof(laser))) == NULL) {
         perror("Failed to allocate memory");
         exit(EXIT_FAILURE);
@@ -142,7 +140,6 @@ int getLaserData(laser **laserData) {
 
 void *process(void *arg) {
 
-    int i, j;
     time_t the_time;
     satin_process_args* process_args = (satin_process_args*) arg;
     laser laserData = process_args->laserData;
@@ -160,9 +157,9 @@ void *process(void *arg) {
             "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
             ctime(&the_time), laserData.dischargePressure, laserData.smallSignalGain, laserData.carbonDioxide);
 
-    for (i = 0; i < process_args->pNum; i++) {
+    for (int i = 0; i < process_args->pNum; i++) {
         gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussianData);
-        for (j = 0; j < sizeof(*gaussianData); j++) {
+        for (int j = 0; j < sizeof(*gaussianData); j++) {
             int inputPower = gaussianData[j].inputPower;
             double outputPower = gaussianData[j].outputPower;
             fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower,
@@ -185,8 +182,7 @@ void *process(void *arg) {
 
 void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData) {
 
-    int i, j, saturationIntensity;
-    float r;
+    int i;
     double *expr1;
     gaussian *gaussians;
 
@@ -209,12 +205,12 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gauss
     double expr2 = (smallSignalGain / 32E3) * DZ;
 
     i = 0;
-    for (saturationIntensity = 10E3; saturationIntensity <= 25E3; saturationIntensity += 1E3) {
+    for (int saturationIntensity = 10E3; saturationIntensity <= 25E3; saturationIntensity += 1E3) {
         double outputPower = 0.0;
         double expr3 = saturationIntensity * expr2;
-        for (r = 0.0; r <= 0.5f; r += DR) {
+        for (float r = 0.0; r <= 0.5f; r += DR) {
             double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(RAD, 2));
-            for (j = 0; j < INCR; j++) {
+            for (int j = 0; j < INCR; j++) {
                 outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j]);
             }
             outputPower += (outputIntensity * EXPR * r);
