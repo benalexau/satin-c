@@ -121,7 +121,8 @@ int getLaserData(laser **laserData) {
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fd, "%s %f %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure, ptr[i].carbonDioxide) != EOF) {
+    while (fscanf(fd, "%s %f %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure,
+            ptr[i].carbonDioxide) != EOF) {
         i++;
         if (i == j && (ptr = realloc(ptr, (j *= 2) * sizeof(laser))) == NULL) {
             perror("Failed to reallocate memory");
@@ -158,8 +159,8 @@ void *process(void *arg) {
             ctime(&the_time), laserData.dischargePressure, laserData.smallSignalGain, laserData.carbonDioxide);
 
     for (int i = 0; i < process_args->pNum; i++) {
-        gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussianData);
-        for (int j = 0; j < sizeof(*gaussianData); j++) {
+        int size = gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussianData);
+        for (int j = 0; j < size; j++) {
             int inputPower = gaussianData[j].inputPower;
             double outputPower = gaussianData[j].outputPower;
             fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower,
@@ -180,7 +181,7 @@ void *process(void *arg) {
     return NULL;
 }
 
-void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData) {
+int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData) {
 
     int i;
     double *expr1;
@@ -223,5 +224,6 @@ void gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gauss
     *gaussianData = gaussians;
 
     free(expr1);
+    return i;
 }
 
