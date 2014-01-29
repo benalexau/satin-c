@@ -121,8 +121,7 @@ int getLaserData(laser **laserData) {
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fd, "%s %f %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure,
-            ptr[i].carbonDioxide) != EOF) {
+    while (fscanf(fd, "%s %f %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure, ptr[i].carbonDioxide) != EOF) {
         i++;
         if (i == j && (ptr = realloc(ptr, (j *= 2) * sizeof(laser))) == NULL) {
             perror("Failed to reallocate memory");
