@@ -28,6 +28,5 @@ int getInputPowers(int **inputPowers);
 int getLaserData(laser **laserData);
 void *process(void *arg);
 int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData);
-void error();
 
 #endif
