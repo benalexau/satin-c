@@ -140,6 +140,7 @@ int getLaserData(laser **laserData) {
 
 void *process(void *arg) {
 
+    int i, j;
     time_t the_time;
     satin_process_args* process_args = (satin_process_args*) arg;
     laser laserData = process_args->laserData;
@@ -157,9 +158,9 @@ void *process(void *arg) {
             "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
             ctime(&the_time), laserData.dischargePressure, laserData.smallSignalGain, laserData.carbonDioxide);
 
-    for (int i = 0; i < process_args->pNum; i++) {
+    for (i = 0; i < process_args->pNum; i++) {
         int size = gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussianData);
-        for (int j = 0; j < size; j++) {
+        for (j = 0; j < size; j++) {
             int inputPower = gaussianData[j].inputPower;
             double outputPower = gaussianData[j].outputPower;
             fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower,
@@ -182,7 +183,8 @@ void *process(void *arg) {
 
 int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData) {
 
-    int i;
+    int i, j, saturationIntensity;
+    float r;
     double *expr1;
     gaussian *gaussians;
 
@@ -205,12 +207,12 @@ int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussi
     double expr2 = (smallSignalGain / 32E3) * DZ;
 
     i = 0;
-    for (int saturationIntensity = 10E3; saturationIntensity <= 25E3; saturationIntensity += 1E3) {
+    for (saturationIntensity = 10E3; saturationIntensity <= 25E3; saturationIntensity += 1E3) {
         double outputPower = 0.0;
         double expr3 = saturationIntensity * expr2;
-        for (float r = 0.0; r <= 0.5f; r += DR) {
+        for (r = 0.0; r <= 0.5f; r += DR) {
             double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(RAD, 2));
-            for (int j = 0; j < INCR; j++) {
+            for (j = 0; j < INCR; j++) {
                 outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j]);
             }
             outputPower += (outputIntensity * EXPR * r);
