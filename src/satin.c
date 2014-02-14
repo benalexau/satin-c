@@ -186,7 +186,6 @@ void *process(void *arg) {
         }
     }
 
-    free(gaussianData);
     time(&the_time);
     fprintf(fd, "\nEnd date: %s\n", ctime(&the_time));
     fflush(fd);
@@ -196,6 +195,7 @@ void *process(void *arg) {
         exit(EXIT_FAILURE);
     }
 
+    free(gaussianData);
     return NULL;
 }
 
