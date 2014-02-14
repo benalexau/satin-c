@@ -23,7 +23,8 @@ typedef struct {
     laser laserData;
 } satin_process_args;
 
-void calculate(_Bool concurrent);
+void calculateConcurrently();
+void calculate();
 int getInputPowers(int **inputPowers);
 int getLaserData(laser **laserData);
 void *process(void *arg);

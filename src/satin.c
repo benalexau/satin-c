@@ -27,7 +27,11 @@ int main(int argc, char* argv[]) {
     double elapsedTime;
 
     gettimeofday(&t1, NULL);
-    calculate(argc > 1 && strcmp(argv[1], "-concurrent") == 0);
+    if (argc > 1 && strcmp(argv[1], "-concurrent") == 0) {
+        calculateConcurrently();
+    } else {
+        calculate();
+    }
     gettimeofday(&t2, NULL);
 
     elapsedTime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1E6;
@@ -35,7 +39,7 @@ int main(int argc, char* argv[]) {
     return EXIT_SUCCESS;
 }
 
-void calculate(_Bool concurrent) {
+void calculateConcurrently() {
 
     int i, pNum, *inputPowers, lNum;
     laser *laserData;
@@ -50,21 +54,35 @@ void calculate(_Bool concurrent) {
         process_args[i].pNum = pNum;
         process_args[i].inputPowers = inputPowers;
         process_args[i].laserData = laserData[i];
+        pthread_create(&threads[i], NULL, process, &process_args[i]);
+    }
 
-        if (concurrent) {
-            pthread_create(&threads[i], NULL, process, &process_args[i]);
-        } else {
-            process(&process_args[i]);
+    for (i = 0; i < lNum; i++) {
+        if (pthread_join(threads[i], NULL) != 0) {
+            perror("Failed to join threads");
+            exit(EXIT_FAILURE);
         }
     }
 
-    if (concurrent) {
-        for (i = 0; i < lNum; i++) {
-            if (pthread_join(threads[i], NULL) != 0) {
-                perror("Failed to join threads");
-                exit(EXIT_FAILURE);
-            }
-        }
+    free(inputPowers);
+    free(laserData);
+}
+
+void calculate() {
+
+    int i, pNum, *inputPowers, lNum;
+    laser *laserData;
+
+    pNum = getInputPowers(&inputPowers);
+    lNum = getLaserData(&laserData);
+
+    satin_process_args process_args[lNum];
+
+    for (i = 0; i < lNum; i++) {
+        process_args[i].pNum = pNum;
+        process_args[i].inputPowers = inputPowers;
+        process_args[i].laserData = laserData[i];
+        process(&process_args[i]);
     }
 
     free(inputPowers);
