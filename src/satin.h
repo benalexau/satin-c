@@ -7,7 +7,8 @@
 #define N  8
 
 typedef struct {
-    int inputPower, saturationIntensity;
+    int inputPower;
+    int saturationIntensity;
     double outputPower;
 } gaussian;
 
@@ -19,7 +20,8 @@ typedef struct {
 } laser;
 
 typedef struct {
-    int pNum, *inputPowers;
+    int pNum;
+    int *inputPowers;
     laser laserData;
 } satin_process_args;
 

@@ -23,7 +23,8 @@
 
 int main(int argc, char* argv[]) {
 
-    struct timeval t1, t2;
+    struct timeval t1;
+    struct timeval t2;
     double elapsedTime;
 
     gettimeofday(&t1, NULL);
@@ -41,7 +42,10 @@ int main(int argc, char* argv[]) {
 
 void calculateConcurrently() {
 
-    int i, pNum, *inputPowers, lNum;
+    int i;
+    int pNum;
+    int *inputPowers;
+    int lNum;
     laser *laserData;
 
     pNum = getInputPowers(&inputPowers);
@@ -70,7 +74,10 @@ void calculateConcurrently() {
 
 void calculate() {
 
-    int i, pNum, *inputPowers, lNum;
+    int i;
+    int pNum;
+    int *inputPowers;
+    int lNum;
     laser *laserData;
 
     pNum = getInputPowers(&inputPowers);
@@ -91,7 +98,9 @@ void calculate() {
 
 int getInputPowers(int **inputPowers) {
 
-    int i = 0, j = N, *ptr;
+    int i = 0;
+    int j = N;
+    int *ptr;
     char *inputPowerFile = "pin.dat";
     FILE *fd;
 
@@ -124,7 +133,8 @@ int getInputPowers(int **inputPowers) {
 
 int getLaserData(laser **laserData) {
 
-    int i = 0, j = N;
+    int i = 0;
+    int j = N;
     char *laserDataFile = "laser.dat";
     laser *ptr;
     FILE *fd;
@@ -158,7 +168,8 @@ int getLaserData(laser **laserData) {
 
 void *process(void *arg) {
 
-    int i, j;
+    int i;
+    int j;
     time_t the_time;
     satin_process_args* process_args = (satin_process_args*) arg;
     laser laserData = process_args->laserData;
@@ -201,7 +212,9 @@ void *process(void *arg) {
 
 int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData) {
 
-    int i, j, saturationIntensity;
+    int i;
+    int j;
+    int saturationIntensity;
     float r;
     double *expr1;
     gaussian *gaussians;
