@@ -10,7 +10,6 @@
 #include <errno.h>
 #include "satin.h"
 
-#define M_PI  3.14159265358979323846264338327
 #define RAD   18E-2
 #define W1    3E-1
 #define DR    2E-3
