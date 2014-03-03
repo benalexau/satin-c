@@ -79,8 +79,8 @@ void calculateConcurrently() {
 
     free(inputPowers);
     free(laserData);
-    free(threads);
     free(process_args);
+    free(threads);
 }
 
 void calculate() {
@@ -204,12 +204,11 @@ void *process(void *arg) {
             ctime(&the_time), laserData.dischargePressure, laserData.smallSignalGain, laserData.carbonDioxide);
 
     for (i = 0; i < process_args->pNum; i++) {
-        int size = gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussianData);
-        for (j = 0; j < size; j++) {
+        int gaussianDataSize = gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussianData);
+        for (j = 0; j < gaussianDataSize; j++) {
             int inputPower = gaussianData[j].inputPower;
             double outputPower = gaussianData[j].outputPower;
-            fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower,
-                    gaussianData[j].saturationIntensity, log(outputPower / inputPower), outputPower - inputPower);
+            fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower, gaussianData[j].saturationIntensity, log(outputPower / inputPower), outputPower - inputPower);
         }
     }
 
@@ -237,7 +236,7 @@ int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussi
     double expr2;
     gaussian *gaussians;
 
-    if ((gaussians = malloc(16 * sizeof(gaussian))) == NULL) {
+    if ((gaussians = malloc(16 /* saturationIntensity increments */ * sizeof(gaussian))) == NULL) {
         perror("Failed to allocate memory");
         exit(EXIT_FAILURE);
     }

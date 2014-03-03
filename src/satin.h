@@ -7,12 +7,6 @@
 #define N  8
 
 typedef struct {
-    int inputPower;
-    int saturationIntensity;
-    double outputPower;
-} gaussian;
-
-typedef struct {
     char outputFile[9];
     float smallSignalGain;
     int dischargePressure;
@@ -24,6 +18,12 @@ typedef struct {
     int *inputPowers;
     laser laserData;
 } satin_process_args;
+
+typedef struct {
+    int inputPower;
+    int saturationIntensity;
+    double outputPower;
+} gaussian;
 
 void calculateConcurrently();
 void calculate();
