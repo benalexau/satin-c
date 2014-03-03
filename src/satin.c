@@ -10,15 +10,16 @@
 #include <errno.h>
 #include "satin.h"
 
+#define PI    3.14159265358979323846
 #define RAD   18E-2
 #define W1    3E-1
 #define DR    2E-3
 #define DZ    4E-2
 #define LAMDA 10.6E-3
-#define AREA  (M_PI * (RAD * RAD))
-#define Z1    (M_PI * (W1 * W1) / LAMDA)
+#define AREA  (PI * (RAD * RAD))
+#define Z1    (PI * (W1 * W1) / LAMDA)
 #define Z12   Z1 * Z1
-#define EXPR  2 * M_PI * DR
+#define EXPR  2 * PI * DR
 #define INCR  8001
 
 int main(int argc, char* argv[]) {
