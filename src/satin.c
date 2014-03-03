@@ -10,6 +10,7 @@
 #include <errno.h>
 #include "satin.h"
 
+#define M_PI  3.14159265358979323846264338327
 #define RAD   18E-2
 #define W1    3E-1
 #define DR    2E-3
@@ -47,12 +48,21 @@ void calculateConcurrently() {
     int *inputPowers;
     int lNum;
     laser *laserData;
+    pthread_t *threads;
+    satin_process_args *process_args;
 
     pNum = getInputPowers(&inputPowers);
     lNum = getLaserData(&laserData);
 
-    pthread_t threads[lNum];
-    satin_process_args process_args[lNum];
+    if ((threads = malloc(lNum * sizeof(pthread_t))) == NULL) {
+        perror("Failed to allocate memory");
+        exit(EXIT_FAILURE);
+    }
+
+    if ((process_args = malloc(lNum * sizeof(satin_process_args))) == NULL) {
+        perror("Failed to allocate memory");
+        exit(EXIT_FAILURE);
+    }
 
     for (i = 0; i < lNum; i++) {
         process_args[i].pNum = pNum;
@@ -70,6 +80,8 @@ void calculateConcurrently() {
 
     free(inputPowers);
     free(laserData);
+    free(threads);
+    free(process_args);
 }
 
 void calculate() {
@@ -79,11 +91,15 @@ void calculate() {
     int *inputPowers;
     int lNum;
     laser *laserData;
+    satin_process_args *process_args;
 
     pNum = getInputPowers(&inputPowers);
     lNum = getLaserData(&laserData);
 
-    satin_process_args process_args[lNum];
+    if ((process_args = malloc(lNum * sizeof(satin_process_args))) == NULL) {
+        perror("Failed to allocate memory");
+        exit(EXIT_FAILURE);
+    }
 
     for (i = 0; i < lNum; i++) {
         process_args[i].pNum = pNum;
@@ -94,6 +110,7 @@ void calculate() {
 
     free(inputPowers);
     free(laserData);
+    free(process_args);
 }
 
 int getInputPowers(int **inputPowers) {
@@ -217,6 +234,8 @@ int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussi
     int saturationIntensity;
     float r;
     double *expr1;
+    double inputIntensity;
+    double expr2;
     gaussian *gaussians;
 
     if ((gaussians = malloc(16 * sizeof(gaussian))) == NULL) {
@@ -234,8 +253,8 @@ int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussi
         expr1[i] = zInc * 2 * DZ / (Z12 + pow(zInc, 2));
     }
 
-    double inputIntensity = 2 * inputPower / AREA;
-    double expr2 = (smallSignalGain / 32E3) * DZ;
+    inputIntensity = 2 * inputPower / AREA;
+    expr2 = (smallSignalGain / 32E3) * DZ;
 
     i = 0;
     for (saturationIntensity = 10E3; saturationIntensity <= 25E3; saturationIntensity += 1E3) {
@@ -258,4 +277,3 @@ int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussi
     free(expr1);
     return i;
 }
-
