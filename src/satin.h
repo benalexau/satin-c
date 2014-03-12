@@ -8,7 +8,7 @@
 
 typedef struct {
     char outputFile[9];
-    float smallSignalGain;
+    double smallSignalGain;
     int dischargePressure;
     char carbonDioxide[3];
 } laser;
