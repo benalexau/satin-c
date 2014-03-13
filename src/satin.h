@@ -4,7 +4,11 @@
 #ifndef SATIN_H
 #define SATIN_H
 
-#define N  8
+#include <regex.h>
+
+#define N   8
+#define BUF 25
+#define ERR "Failed to allocate memory"
 
 typedef struct {
     char outputFile[9];
@@ -29,6 +33,7 @@ void calculateConcurrently();
 void calculate();
 int getInputPowers(int **inputPowers);
 int getLaserData(laser **laserData);
+char *get_regerror(int errcode, regex_t *preg);
 void *process(void *arg);
 int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData);
 

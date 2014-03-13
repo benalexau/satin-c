@@ -55,12 +55,12 @@ void calculateConcurrently() {
     lNum = getLaserData(&laserData);
 
     if ((threads = malloc(lNum * sizeof(pthread_t))) == NULL) {
-        perror("Failed to allocate memory");
+        perror(ERR);
         exit(EXIT_FAILURE);
     }
 
     if ((process_args = malloc(lNum * sizeof(satin_process_args))) == NULL) {
-        perror("Failed to allocate memory");
+        perror(ERR);
         exit(EXIT_FAILURE);
     }
 
@@ -97,7 +97,7 @@ void calculate() {
     lNum = getLaserData(&laserData);
 
     if ((process_args = malloc(lNum * sizeof(satin_process_args))) == NULL) {
-        perror("Failed to allocate memory");
+        perror(ERR);
         exit(EXIT_FAILURE);
     }
 
@@ -127,7 +127,7 @@ int getInputPowers(int **inputPowers) {
     }
 
     if ((ptr = malloc(j * sizeof(int))) == NULL) {
-        perror("Failed to allocate memory");
+        perror(ERR);
         exit(EXIT_FAILURE);
     }
 
@@ -138,6 +138,7 @@ int getInputPowers(int **inputPowers) {
             exit(EXIT_FAILURE);
         }
     }
+
     *inputPowers = ptr;
 
     if (fclose(fd) == EOF) {
@@ -162,7 +163,7 @@ int getLaserData(laser **laserData) {
     }
 
     if ((ptr = malloc(j * sizeof(laser))) == NULL) {
-        perror("Failed to allocate memory");
+        perror(ERR);
         exit(EXIT_FAILURE);
     }
 
@@ -173,6 +174,7 @@ int getLaserData(laser **laserData) {
             exit(EXIT_FAILURE);
         }
     }
+
     *laserData = ptr;
 
     if (fclose(fd) == EOF) {
@@ -237,13 +239,13 @@ int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussi
     double r;
     gaussian *gaussians;
 
-    if ((gaussians = malloc(16 /* saturationIntensity increments */ * sizeof(gaussian))) == NULL) {
-        perror("Failed to allocate memory");
+    if ((gaussians = malloc(16 /* total saturationIntensity increments */ * sizeof(gaussian))) == NULL) {
+        perror(ERR);
         exit(EXIT_FAILURE);
     }
 
     if ((expr1 = malloc(INCR * sizeof(double))) == NULL) {
-        perror("Failed to allocate memory");
+        perror(ERR);
         exit(EXIT_FAILURE);
     }
 
@@ -271,6 +273,7 @@ int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussi
         gaussians[i].outputPower = outputPower;
         i++;
     }
+
     *gaussianData = gaussians;
 
     free(expr1);
