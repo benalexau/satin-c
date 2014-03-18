@@ -22,8 +22,8 @@
 #define EXPR  2 * PI * DR
 #define INCR  8001
 
-int main(int argc, char* argv[]) {
-
+int main(int argc, char* argv[])
+{
     struct timeval t1;
     struct timeval t2;
     double elapsedTime;
@@ -41,8 +41,8 @@ int main(int argc, char* argv[]) {
     return EXIT_SUCCESS;
 }
 
-void calculateConcurrently() {
-
+void calculateConcurrently()
+{
     int i;
     int pNum;
     int *inputPowers;
@@ -84,8 +84,8 @@ void calculateConcurrently() {
     free(threads);
 }
 
-void calculate() {
-
+void calculate()
+{
     int i;
     int pNum;
     int *inputPowers;
@@ -113,8 +113,8 @@ void calculate() {
     free(process_args);
 }
 
-int getInputPowers(int **inputPowers) {
-
+int getInputPowers(int **inputPowers)
+{
     int i = 0;
     int j = N;
     int *ptr;
@@ -122,7 +122,8 @@ int getInputPowers(int **inputPowers) {
     FILE *fd;
 
     if ((fd = fopen(inputPowerFile, "r")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", inputPowerFile, strerror(errno));
+        fprintf(stderr, "Error opening %s: %s\n", inputPowerFile,
+                strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -142,22 +143,24 @@ int getInputPowers(int **inputPowers) {
     *inputPowers = ptr;
 
     if (fclose(fd) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", inputPowerFile, strerror(errno));
+        fprintf(stderr, "Error closing %s: %s\n", inputPowerFile,
+                strerror(errno));
         exit(EXIT_FAILURE);
     }
 
     return i;
 }
 
-int getLaserData(laser **laserData) {
-
+int getLaserData(laser **laserData)
+{
     int i = 0;
     int j = N;
     int rc = 0;
     char *laserDataFile = "laser.dat";
     char *line;
     char *lineCopy;
-    char *pattern = "((md|pi)[a-z]{2}\\.out)[ ]+([0-9]{2}\\.[0-9])[ ]+([0-9]+)[ ]+(MD|PI)";
+    char *pattern =
+            "((md|pi)[a-z]{2}\\.out)[ ]+([0-9]{2}\\.[0-9])[ ]+([0-9]+)[ ]+(MD|PI)";
     regex_t compiled;
     size_t nmatch = 6;
     regmatch_t *matchptr;
@@ -165,7 +168,8 @@ int getLaserData(laser **laserData) {
     FILE *fd;
 
     if ((fd = fopen(laserDataFile, "r")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", laserDataFile, strerror(errno));
+        fprintf(stderr, "Error opening %s: %s\n", laserDataFile,
+                strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -181,7 +185,8 @@ int getLaserData(laser **laserData) {
 
     rc = regcomp(&compiled, pattern, REG_EXTENDED);
     if (rc != 0) {
-        printf("Failed to compile regex: %d (%s)\n", rc, get_regerror(rc, &compiled));
+        printf("Failed to compile regex: %d (%s)\n", rc,
+                get_regerror(rc, &compiled));
         exit(rc);
     }
 
@@ -193,7 +198,8 @@ int getLaserData(laser **laserData) {
     while (fgets(line, BUF, fd) != NULL) {
         rc = regexec(&compiled, line, nmatch, matchptr, 0);
         if (rc != 0) {
-            printf("Failed to execute regex: %d (%s)\n", rc, get_regerror(rc, &compiled));
+            printf("Failed to execute regex: %d (%s)\n", rc,
+                    get_regerror(rc, &compiled));
             exit(rc);
         }
 
@@ -224,7 +230,8 @@ int getLaserData(laser **laserData) {
     *laserData = ptr;
 
     if (fclose(fd) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", laserDataFile, strerror(errno));
+        fprintf(stderr, "Error closing %s: %s\n", laserDataFile,
+                strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -235,15 +242,16 @@ int getLaserData(laser **laserData) {
     return i;
 }
 
-char *get_regerror(int errcode, regex_t *compiled) {
+char *get_regerror(int errcode, regex_t *compiled)
+{
     size_t length = regerror(errcode, compiled, NULL, 0);
     char *buffer = malloc(length);
     (void) regerror(errcode, compiled, buffer, length);
     return buffer;
 }
 
-void *process(void *arg) {
-
+void *process(void *arg)
+{
     int i;
     int j;
     time_t the_time;
@@ -261,14 +269,18 @@ void *process(void *arg) {
     time(&the_time);
     fprintf(fd,
             "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
-            ctime(&the_time), laserData.dischargePressure, laserData.smallSignalGain, laserData.carbonDioxide);
+            ctime(&the_time), laserData.dischargePressure,
+            laserData.smallSignalGain, laserData.carbonDioxide);
 
     for (i = 0; i < process_args->pNum; i++) {
-        int gaussianDataSize = gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussianData);
+        int gaussianDataSize = gaussianCalculation(process_args->inputPowers[i],
+                laserData.smallSignalGain, &gaussianData);
         for (j = 0; j < gaussianDataSize; j++) {
             int inputPower = gaussianData[j].inputPower;
             double outputPower = gaussianData[j].outputPower;
-            fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower, outputPower, gaussianData[j].saturationIntensity, log(outputPower / inputPower), outputPower - inputPower);
+            fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower,
+                    outputPower, gaussianData[j].saturationIntensity,
+                    log(outputPower / inputPower), outputPower - inputPower);
         }
     }
 
@@ -285,8 +297,9 @@ void *process(void *arg) {
     return NULL;
 }
 
-int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData) {
-
+int gaussianCalculation(int inputPower, float smallSignalGain,
+        gaussian **gaussianData)
+{
     int i;
     int j;
     int saturationIntensity;
@@ -296,7 +309,9 @@ int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussi
     double r;
     gaussian *gaussians;
 
-    if ((gaussians = malloc(16 /* total saturationIntensity increments */ * sizeof(gaussian))) == NULL) {
+    if ((gaussians = malloc(
+            16 /* total saturationIntensity increments */* sizeof(gaussian)))
+            == NULL) {
         perror(ERR);
         exit(EXIT_FAILURE);
     }
@@ -315,13 +330,17 @@ int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussi
     expr2 = (smallSignalGain / 32E3) * DZ;
 
     i = 0;
-    for (saturationIntensity = 10E3; saturationIntensity <= 25E3; saturationIntensity += 1E3) {
+    for (saturationIntensity = 10E3; saturationIntensity <= 25E3;
+            saturationIntensity += 1E3) {
         double outputPower = 0.0;
         double expr3 = saturationIntensity * expr2;
         for (r = 0.0; r <= 0.5; r += DR) {
-            double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / pow(RAD, 2));
+            double outputIntensity = inputIntensity
+                    * exp(-2 * pow(r, 2) / pow(RAD, 2));
             for (j = 0; j < INCR; j++) {
-                outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j]);
+                outputIntensity *= (1
+                        + expr3 / (saturationIntensity + outputIntensity)
+                        - expr1[j]);
             }
             outputPower += (outputIntensity * EXPR * r);
         }
