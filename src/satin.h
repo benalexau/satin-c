@@ -35,6 +35,7 @@ int getInputPowers(int **inputPowers);
 int getLaserData(laser **laserData);
 char *get_regerror(int errcode, regex_t *preg);
 void *process(void *arg);
-int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussianData);
+int gaussianCalculation(int inputPower, float smallSignalGain,
+        gaussian **gaussianData);
 
 #endif
