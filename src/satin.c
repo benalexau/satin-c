@@ -167,7 +167,7 @@ int getLaserData(laser **laserData)
     regmatch_t *matchptr;
     laser *ptr;
     FILE *fd;
-printf("using regex\n");
+
     if ((fd = fopen(laserDataFile, "r")) == NULL) {
         fprintf(stderr, "Error opening %s: %s\n", laserDataFile,
                 strerror(errno));
