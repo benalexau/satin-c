@@ -151,6 +151,107 @@ int getInputPowers(int **inputPowers)
     return i;
 }
 
+#ifdef REGEX
+int getLaserData(laser **laserData)
+{
+    int i = 0;
+    int j = N;
+    int rc = 0;
+    char *laserDataFile = "laser.dat";
+    char *line;
+    char *lineCopy;
+    char *pattern =
+            "((md|pi)[a-z]{2}\\.out)[ ]+([0-9]{2}\\.[0-9])[ ]+([0-9]+)[ ]+(MD|PI)";
+    regex_t compiled;
+    size_t nmatch = 6;
+    regmatch_t *matchptr;
+    laser *ptr;
+    FILE *fd;
+printf("using regex\n");
+    if ((fd = fopen(laserDataFile, "r")) == NULL) {
+        fprintf(stderr, "Error opening %s: %s\n", laserDataFile,
+                strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    if ((ptr = malloc(j * sizeof(laser))) == NULL) {
+        perror(ERR);
+        exit(EXIT_FAILURE);
+    }
+
+    if ((matchptr = malloc(nmatch * sizeof(regmatch_t))) == NULL) {
+        perror(ERR);
+        exit(EXIT_FAILURE);
+    }
+
+    rc = regcomp(&compiled, pattern, REG_EXTENDED);
+    if (rc != 0) {
+        printf("Failed to compile regex: %d (%s)\n", rc,
+                get_regerror(rc, &compiled));
+        exit(rc);
+    }
+
+    if ((line = malloc(BUF * sizeof(char))) == NULL) {
+        perror(ERR);
+        exit(EXIT_FAILURE);
+    }
+
+    while (fgets(line, BUF, fd) != NULL) {
+        rc = regexec(&compiled, line, nmatch, matchptr, 0);
+        if (rc != 0) {
+            printf("Failed to execute regex: %d (%s)\n", rc,
+                    get_regerror(rc, &compiled));
+            exit(rc);
+        }
+
+        if ((lineCopy = strdup(line)) == NULL) {
+            perror(ERR);
+            exit(EXIT_FAILURE);
+        }
+
+        lineCopy[matchptr[1].rm_eo] = 0;
+        strcpy(ptr[i].outputFile, lineCopy + matchptr[1].rm_so);
+
+        lineCopy[matchptr[3].rm_eo] = 0;
+        ptr[i].smallSignalGain = atof(lineCopy + matchptr[3].rm_so);
+
+        lineCopy[matchptr[4].rm_eo] = 0;
+        ptr[i].dischargePressure = atoi(lineCopy + matchptr[4].rm_so);
+
+        lineCopy[matchptr[5].rm_eo] = 0;
+        strcpy(ptr[i].carbonDioxide, lineCopy + matchptr[5].rm_so);
+
+        i++;
+        if (i == j && (ptr = realloc(ptr, (j *= 2) * sizeof(laser))) == NULL) {
+            perror("Failed to reallocate memory");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    *laserData = ptr;
+
+    if (fclose(fd) == EOF) {
+        fprintf(stderr, "Error closing %s: %s\n", laserDataFile,
+                strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    regfree(&compiled);
+    free(line);
+    free(lineCopy);
+    free(matchptr);
+    return i;
+}
+
+char *get_regerror(int errcode, regex_t *compiled)
+{
+    size_t length = regerror(errcode, compiled, NULL, 0);
+    char *buffer = malloc(length);
+    (void) regerror(errcode, compiled, buffer, length);
+    return buffer;
+}
+
+#else
 int getLaserData(laser **laserData)
 {
     int i = 0;
@@ -190,6 +291,7 @@ int getLaserData(laser **laserData)
 
     return i;
 }
+#endif
 
 void *process(void *arg)
 {
