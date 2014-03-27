@@ -11,6 +11,7 @@ clean:
 satin: src/satin.c
 	@echo 'Building target: $@'
 	gcc ${CFLAGS} src/satin.c -lm -lpthread -o satin
+	@echo 'Finished building target: $@'
 
 bench: satin
 	./satin -concurrent
