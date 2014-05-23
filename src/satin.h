@@ -6,8 +6,6 @@
 
 #include <regex.h>
 
-#define N   8
-#define BUF 25
 #define ERR "Failed to allocate memory"
 
 typedef struct {

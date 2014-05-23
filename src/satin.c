@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
     gettimeofday(&t2, NULL);
 
     elapsedTime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1E6;
-    printf("The time was %6.3f seconds.\n", elapsedTime);
+    printf("The time was %.3f seconds.\n", elapsedTime);
     return EXIT_SUCCESS;
 }
 
@@ -116,7 +116,7 @@ void calculate()
 int getInputPowers(int **inputPowers)
 {
     int i = 0;
-    int j = N;
+    int j = 6;
     int *ptr;
     char *inputPowerFile = "pin.dat";
     FILE *fd;
@@ -134,9 +134,11 @@ int getInputPowers(int **inputPowers)
 
     while (fscanf(fd, "%d\n", &ptr[i]) != EOF) {
         i++;
-        if (i == j && (ptr = realloc(ptr, (j *= 2) * sizeof(int))) == NULL) {
-            perror("Failed to reallocate memory");
-            exit(EXIT_FAILURE);
+        if (i == j) {
+            if ((ptr = realloc(ptr, (j *= 2) * sizeof(int))) == NULL) {
+                perror("Failed to reallocate memory");
+                exit(EXIT_FAILURE);
+            }
         }
     }
 
@@ -155,13 +157,13 @@ int getInputPowers(int **inputPowers)
 int getLaserData(laser **laserData)
 {
     int i = 0;
-    int j = N;
+    int j = 9;
     int rc = 0;
+    int buf = 25;
     char *laserDataFile = "laser.dat";
     char *line;
-    char *lineCopy;
     char *pattern =
-            "((md|pi)[a-z]{2}\\.out)[ ]+([0-9]{2}\\.[0-9])[ ]+([0-9]+)[ ]+(MD|PI)";
+    "((md|pi)[a-z]{2}\\.out)[ ]+([0-9]{2}\\.[0-9])[ ]+([0-9]+)[ ]+(MD|PI)";
     regex_t compiled;
     size_t nmatch = 6;
     regmatch_t *matchptr;
@@ -191,12 +193,12 @@ int getLaserData(laser **laserData)
         exit(rc);
     }
 
-    if ((line = malloc(BUF * sizeof(char))) == NULL) {
+    if ((line = malloc(buf * sizeof(char))) == NULL) {
         perror(ERR);
         exit(EXIT_FAILURE);
     }
 
-    while (fgets(line, BUF, fd) != NULL) {
+    while (fgets(line, buf, fd) != NULL) {
         rc = regexec(&compiled, line, nmatch, matchptr, 0);
         if (rc != 0) {
             printf("Failed to execute regex: %d (%s)\n", rc,
@@ -204,27 +206,24 @@ int getLaserData(laser **laserData)
             exit(rc);
         }
 
-        if ((lineCopy = strdup(line)) == NULL) {
-            perror(ERR);
-            exit(EXIT_FAILURE);
-        }
+        line[matchptr[1].rm_eo] = 0;
+        strcpy(ptr[i].outputFile, line + matchptr[1].rm_so);
 
-        lineCopy[matchptr[1].rm_eo] = 0;
-        strcpy(ptr[i].outputFile, lineCopy + matchptr[1].rm_so);
+        line[matchptr[3].rm_eo] = 0;
+        ptr[i].smallSignalGain = atof(line + matchptr[3].rm_so);
 
-        lineCopy[matchptr[3].rm_eo] = 0;
-        ptr[i].smallSignalGain = atof(lineCopy + matchptr[3].rm_so);
+        line[matchptr[4].rm_eo] = 0;
+        ptr[i].dischargePressure = atoi(line + matchptr[4].rm_so);
 
-        lineCopy[matchptr[4].rm_eo] = 0;
-        ptr[i].dischargePressure = atoi(lineCopy + matchptr[4].rm_so);
-
-        lineCopy[matchptr[5].rm_eo] = 0;
-        strcpy(ptr[i].carbonDioxide, lineCopy + matchptr[5].rm_so);
+        line[matchptr[5].rm_eo] = 0;
+        strcpy(ptr[i].carbonDioxide, line + matchptr[5].rm_so);
 
         i++;
-        if (i == j && (ptr = realloc(ptr, (j *= 2) * sizeof(laser))) == NULL) {
-            perror("Failed to reallocate memory");
-            exit(EXIT_FAILURE);
+        if (i == j) {
+            if ((ptr = realloc(ptr, (j *= 2) * sizeof(laser))) == NULL) {
+                perror("Failed to reallocate memory");
+                exit(EXIT_FAILURE);
+            }
         }
     }
 
@@ -236,9 +235,10 @@ int getLaserData(laser **laserData)
         exit(EXIT_FAILURE);
     }
 
+    printf("Parsed %d records of %s with regex\n", i, laserDataFile);
+
     regfree(&compiled);
     free(line);
-    free(lineCopy);
     free(matchptr);
     return i;
 }
@@ -255,7 +255,7 @@ char *get_regerror(int errcode, regex_t *compiled)
 int getLaserData(laser **laserData)
 {
     int i = 0;
-    int j = N;
+    int j = 9;
     char *laserDataFile = "laser.dat";
     laser *ptr;
     FILE *fd;
@@ -275,9 +275,11 @@ int getLaserData(laser **laserData)
             &ptr[i].smallSignalGain, &ptr[i].dischargePressure,
             ptr[i].carbonDioxide) != EOF) {
         i++;
-        if (i == j && (ptr = realloc(ptr, (j *= 2) * sizeof(laser))) == NULL) {
-            perror("Failed to reallocate memory");
-            exit(EXIT_FAILURE);
+        if (i == j) {
+            if ((ptr = realloc(ptr, (j *= 2) * sizeof(laser))) == NULL) {
+                perror("Failed to reallocate memory");
+                exit(EXIT_FAILURE);
+            }
         }
     }
 
@@ -316,9 +318,9 @@ void *process(void *arg)
             laserData.smallSignalGain, laserData.carbonDioxide);
 
     for (i = 0; i < process_args->pNum; i++) {
-        int gaussianDataSize = gaussianCalculation(process_args->inputPowers[i],
+        int gaussiansSize = gaussianCalculation(process_args->inputPowers[i],
                 laserData.smallSignalGain, &gaussianData);
-        for (j = 0; j < gaussianDataSize; j++) {
+        for (j = 0; j < gaussiansSize; j++) {
             int inputPower = gaussianData[j].inputPower;
             double outputPower = gaussianData[j].outputPower;
             fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower,
@@ -345,6 +347,7 @@ int gaussianCalculation(int inputPower, float smallSignalGain,
 {
     int i;
     int j;
+    int k = 17;
     int saturationIntensity;
     double *expr1;
     double inputIntensity;
@@ -352,9 +355,7 @@ int gaussianCalculation(int inputPower, float smallSignalGain,
     double r;
     gaussian *gaussians;
 
-    if ((gaussians = malloc(
-            16 /* total saturationIntensity increments */* sizeof(gaussian)))
-            == NULL) {
+    if ((gaussians = malloc(k * sizeof(gaussian))) == NULL) {
         perror(ERR);
         exit(EXIT_FAILURE);
     }
@@ -391,6 +392,13 @@ int gaussianCalculation(int inputPower, float smallSignalGain,
         gaussians[i].saturationIntensity = saturationIntensity;
         gaussians[i].outputPower = outputPower;
         i++;
+        if (i == k) {
+            if ((gaussians = realloc(gaussians, (k *= 2) * sizeof(gaussian)))
+                    == NULL) {
+                perror("Failed to reallocate memory");
+                exit(EXIT_FAILURE);
+            }
+        }
     }
 
     *gaussianData = gaussians;
