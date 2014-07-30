@@ -376,8 +376,8 @@ int gaussianCalculation(int inputPower, float smallSignalGain,
     i = 0;
     for (saturationIntensity = 10E3; saturationIntensity <= 25E3;
             saturationIntensity += 1E3) {
-        double outputPower = 0.0;
         double expr3 = saturationIntensity * expr2;
+        double outputPower = 0.0;
         for (r = 0.0; r <= 0.5; r += DR) {
             double outputIntensity = inputIntensity
                     * exp(-2 * pow(r, 2) / pow(RAD, 2));
