@@ -12,14 +12,15 @@
 
 #define PI    3.14159265358979323846
 #define RAD   18E-2
+#define RAD2  (RAD * RAD)
 #define W1    3E-1
 #define DR    2E-3
 #define DZ    4E-2
 #define LAMDA 10.6E-3
-#define AREA  (PI * (RAD * RAD))
+#define AREA  (PI * RAD2)
 #define Z1    (PI * (W1 * W1) / LAMDA)
-#define Z12   Z1 * Z1
-#define EXPR  2 * PI * DR
+#define Z12   (Z1 * Z1)
+#define EXPR  (2 * PI * DR)
 #define INCR  8001
 
 int main(int argc, char* argv[])
@@ -380,7 +381,7 @@ int gaussianCalculation(int inputPower, float smallSignalGain,
         double outputPower = 0.0;
         for (r = 0.0; r <= 0.5; r += DR) {
             double outputIntensity = inputIntensity
-                    * exp(-2 * pow(r, 2) / pow(RAD, 2));
+                    * exp(-2 * pow(r, 2) / RAD2);
             for (j = 0; j < INCR; j++) {
                 outputIntensity *= (1
                         + expr3 / (saturationIntensity + outputIntensity)
