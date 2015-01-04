@@ -120,9 +120,9 @@ int getInputPowers(int **inputPowers)
     int j = 6;
     int *ptr;
     char *inputPowerFile = "pin.dat";
-    FILE *fd;
+    FILE *fp;
 
-    if ((fd = fopen(inputPowerFile, "r")) == NULL) {
+    if ((fp = fopen(inputPowerFile, "r")) == NULL) {
         fprintf(stderr, "Error opening %s: %s\n", inputPowerFile,
                 strerror(errno));
         exit(EXIT_FAILURE);
@@ -133,7 +133,7 @@ int getInputPowers(int **inputPowers)
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fd, "%d\n", &ptr[i]) != EOF) {
+    while (fscanf(fp, "%d\n", &ptr[i]) != EOF) {
         i++;
         if (i == j) {
             if ((ptr = realloc(ptr, (j *= 2) * sizeof(int))) == NULL) {
@@ -145,7 +145,7 @@ int getInputPowers(int **inputPowers)
 
     *inputPowers = ptr;
 
-    if (fclose(fd) == EOF) {
+    if (fclose(fp) == EOF) {
         fprintf(stderr, "Error closing %s: %s\n", inputPowerFile,
                 strerror(errno));
         exit(EXIT_FAILURE);
@@ -169,9 +169,9 @@ int getLaserData(laser **laserData)
     size_t nmatch = 6;
     regmatch_t *matchptr;
     laser *ptr;
-    FILE *fd;
+    FILE *fp;
 
-    if ((fd = fopen(laserDataFile, "r")) == NULL) {
+    if ((fp = fopen(laserDataFile, "r")) == NULL) {
         fprintf(stderr, "Error opening %s: %s\n", laserDataFile,
                 strerror(errno));
         exit(EXIT_FAILURE);
@@ -199,7 +199,7 @@ int getLaserData(laser **laserData)
         exit(EXIT_FAILURE);
     }
 
-    while (fgets(line, buf, fd) != NULL) {
+    while (fgets(line, buf, fp) != NULL) {
         rc = regexec(&compiled, line, nmatch, matchptr, 0);
         if (rc != 0) {
             printf("Failed to execute regex: %d (%s)\n", rc,
@@ -230,7 +230,7 @@ int getLaserData(laser **laserData)
 
     *laserData = ptr;
 
-    if (fclose(fd) == EOF) {
+    if (fclose(fp) == EOF) {
         fprintf(stderr, "Error closing %s: %s\n", laserDataFile,
                 strerror(errno));
         exit(EXIT_FAILURE);
@@ -259,9 +259,9 @@ int getLaserData(laser **laserData)
     int j = 9;
     char *laserDataFile = "laser.dat";
     laser *ptr;
-    FILE *fd;
+    FILE *fp;
 
-    if ((fd = fopen(laserDataFile, "r")) == NULL) {
+    if ((fp = fopen(laserDataFile, "r")) == NULL) {
         fprintf(stderr, "Error opening %s: %s\n", laserDataFile,
                 strerror(errno));
         exit(EXIT_FAILURE);
@@ -272,7 +272,7 @@ int getLaserData(laser **laserData)
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fd, "%s %lf %d %s\n", ptr[i].outputFile,
+    while (fscanf(fp, "%s %lf %d %s\n", ptr[i].outputFile,
             &ptr[i].smallSignalGain, &ptr[i].dischargePressure,
             ptr[i].carbonDioxide) != EOF) {
         i++;
@@ -286,7 +286,7 @@ int getLaserData(laser **laserData)
 
     *laserData = ptr;
 
-    if (fclose(fd) == EOF) {
+    if (fclose(fp) == EOF) {
         fprintf(stderr, "Error closing %s: %s\n", laserDataFile,
                 strerror(errno));
         exit(EXIT_FAILURE);
@@ -305,15 +305,15 @@ void *process(void *arg)
     laser laserData = process_args->laserData;
     char *outputFile = laserData.outputFile;
     gaussian *gaussianData;
-    FILE *fd;
+    FILE *fp;
 
-    if ((fd = fopen(outputFile, "w+")) == NULL) {
+    if ((fp = fopen(outputFile, "w+")) == NULL) {
         fprintf(stderr, "Error opening %s: %s\n", outputFile, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
     time(&the_time);
-    fprintf(fd,
+    fprintf(fp,
             "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
             ctime(&the_time), laserData.dischargePressure,
             laserData.smallSignalGain, laserData.carbonDioxide);
@@ -324,17 +324,17 @@ void *process(void *arg)
         for (j = 0; j < gaussiansSize; j++) {
             int inputPower = gaussianData[j].inputPower;
             double outputPower = gaussianData[j].outputPower;
-            fprintf(fd, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower,
+            fprintf(fp, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower,
                     outputPower, gaussianData[j].saturationIntensity,
                     log(outputPower / inputPower), outputPower - inputPower);
         }
     }
 
     time(&the_time);
-    fprintf(fd, "\nEnd date: %s\n", ctime(&the_time));
-    fflush(fd);
+    fprintf(fp, "\nEnd date: %s\n", ctime(&the_time));
+    fflush(fp);
 
-    if (fclose(fd) == EOF) {
+    if (fclose(fp) == EOF) {
         fprintf(stderr, "Error closing %s: %s\n", outputFile, strerror(errno));
         exit(EXIT_FAILURE);
     }
