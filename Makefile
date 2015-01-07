@@ -14,4 +14,4 @@ satin: src/satin.c
 	@echo 'Finished building target: $@'
 
 bench: satin
-	./satin -concurrent
+	./satin
