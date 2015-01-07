@@ -30,16 +30,45 @@ int main(int argc, char* argv[])
     double elapsedTime;
 
     gettimeofday(&t1, NULL);
-    if (argc > 1 && strcmp(argv[1], "-concurrent") == 0) {
-        calculateConcurrently();
-    } else {
+    if (argc > 1 && strcmp(argv[1], "-single") == 0) {
         calculate();
+    } else {
+        calculateConcurrently();
     }
     gettimeofday(&t2, NULL);
 
     elapsedTime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1E6;
     printf("The time was %.3f seconds.\n", elapsedTime);
     return EXIT_SUCCESS;
+}
+
+void calculate()
+{
+    int i;
+    int pNum;
+    int *inputPowers;
+    int lNum;
+    laser *laserData;
+    satin_process_args *process_args;
+
+    pNum = getInputPowers(&inputPowers);
+    lNum = getLaserData(&laserData);
+
+    if ((process_args = malloc(lNum * sizeof(satin_process_args))) == NULL) {
+        perror(ERR);
+        exit(EXIT_FAILURE);
+    }
+
+    for (i = 0; i < lNum; i++) {
+        process_args[i].pNum = pNum;
+        process_args[i].inputPowers = inputPowers;
+        process_args[i].laserData = laserData[i];
+        process(&process_args[i]);
+    }
+
+    free(inputPowers);
+    free(laserData);
+    free(process_args);
 }
 
 void calculateConcurrently()
@@ -83,35 +112,6 @@ void calculateConcurrently()
     free(laserData);
     free(process_args);
     free(threads);
-}
-
-void calculate()
-{
-    int i;
-    int pNum;
-    int *inputPowers;
-    int lNum;
-    laser *laserData;
-    satin_process_args *process_args;
-
-    pNum = getInputPowers(&inputPowers);
-    lNum = getLaserData(&laserData);
-
-    if ((process_args = malloc(lNum * sizeof(satin_process_args))) == NULL) {
-        perror(ERR);
-        exit(EXIT_FAILURE);
-    }
-
-    for (i = 0; i < lNum; i++) {
-        process_args[i].pNum = pNum;
-        process_args[i].inputPowers = inputPowers;
-        process_args[i].laserData = laserData[i];
-        process(&process_args[i]);
-    }
-
-    free(inputPowers);
-    free(laserData);
-    free(process_args);
 }
 
 int getInputPowers(int **inputPowers)
@@ -372,7 +372,7 @@ int gaussianCalculation(int inputPower, float smallSignalGain,
     }
 
     inputIntensity = 2 * inputPower / AREA;
-    expr2 = (smallSignalGain / 32E3) * DZ;
+    expr2 = smallSignalGain / 32E3 * DZ;
 
     i = 0;
     for (saturationIntensity = 10E3; saturationIntensity <= 25E3;
@@ -387,7 +387,7 @@ int gaussianCalculation(int inputPower, float smallSignalGain,
                         + expr3 / (saturationIntensity + outputIntensity)
                         - expr1[j]);
             }
-            outputPower += (outputIntensity * EXPR * r);
+            outputPower += outputIntensity * EXPR * r;
         }
         gaussians[i].inputPower = inputPower;
         gaussians[i].saturationIntensity = saturationIntensity;
