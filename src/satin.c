@@ -322,11 +322,12 @@ void *process(void *arg)
         int gaussiansSize = gaussianCalculation(process_args->inputPowers[i],
                 laserData.smallSignalGain, &gaussianData);
         for (j = 0; j < gaussiansSize; j++) {
-            int inputPower = gaussianData[j].inputPower;
-            double outputPower = gaussianData[j].outputPower;
-            fprintf(fp, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", inputPower,
-                    outputPower, gaussianData[j].saturationIntensity,
-                    log(outputPower / inputPower), outputPower - inputPower);
+            fprintf(fp, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n",
+            		gaussianData[j].inputPower,
+					gaussianData[j].outputPower,
+                    gaussianData[j].saturationIntensity,
+                    gaussianData[j].logOutputPowerDividedByInputPower,
+					gaussianData[j].ouputPowerMinusInputPower);
         }
     }
 
@@ -392,6 +393,9 @@ int gaussianCalculation(int inputPower, float smallSignalGain,
         gaussians[i].inputPower = inputPower;
         gaussians[i].saturationIntensity = saturationIntensity;
         gaussians[i].outputPower = outputPower;
+        gaussians[i].logOutputPowerDividedByInputPower =
+        		log(outputPower / inputPower);
+        gaussians[i].ouputPowerMinusInputPower = outputPower - inputPower;
         i++;
         if (i == k) {
             if ((gaussians = realloc(gaussians, (k *= 2) * sizeof(gaussian)))

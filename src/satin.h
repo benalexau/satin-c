@@ -25,6 +25,8 @@ typedef struct {
     int inputPower;
     int saturationIntensity;
     double outputPower;
+    double logOutputPowerDividedByInputPower;
+    double ouputPowerMinusInputPower;
 } gaussian;
 
 void calculateConcurrently();
