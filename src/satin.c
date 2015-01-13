@@ -393,8 +393,7 @@ int gaussianCalculation(int inputPower, float smallSignalGain,
         gaussians[i].inputPower = inputPower;
         gaussians[i].saturationIntensity = saturationIntensity;
         gaussians[i].outputPower = outputPower;
-        gaussians[i].logOutputPowerDividedByInputPower =
-        		log(outputPower / inputPower);
+        gaussians[i].logOutputPowerDividedByInputPower =log(outputPower / inputPower);
         gaussians[i].ouputPowerMinusInputPower = outputPower - inputPower;
         i++;
         if (i == k) {
