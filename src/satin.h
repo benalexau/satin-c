@@ -1,10 +1,12 @@
-/* Header satin.h by Alan K Stewart
+/* satin.h by Alan K Stewart
  Saturation Intensity Calculation */
 
 #ifndef SATIN_H
 #define SATIN_H
 
+#ifdef REGEX
 #include <regex.h>
+#endif
 
 #define ERR "Failed to allocate memory"
 
@@ -33,7 +35,9 @@ void calculateConcurrently();
 void calculate();
 int getInputPowers(int **inputPowers);
 int getLaserData(laser **laserData);
+#ifdef REGEX
 char *get_regerror(int errcode, regex_t *preg);
+#endif
 void *process(void *arg);
 int gaussianCalculation(int inputPower, float smallSignalGain,
         gaussian **gaussianData);

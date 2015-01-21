@@ -1,6 +1,7 @@
 /* Program satin.c by Alan K Stewart
  Saturation Intensity Calculation */
 
+#include "satin.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -8,9 +9,8 @@
 #include <string.h>
 #include <pthread.h>
 #include <errno.h>
-#include "satin.h"
 
-#define PI    3.14159265358979323846
+#define PI    3.14159265358979323846264338327950288
 #define RAD   18E-2
 #define RAD2  (RAD * RAD)
 #define W1    3E-1
@@ -27,7 +27,6 @@ int main(int argc, char* argv[])
 {
     struct timeval t1;
     struct timeval t2;
-    double elapsedTime;
 
     gettimeofday(&t1, NULL);
     if (argc > 1 && strcmp(argv[1], "-single") == 0) {
@@ -37,29 +36,26 @@ int main(int argc, char* argv[])
     }
     gettimeofday(&t2, NULL);
 
-    elapsedTime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1E6;
+    double elapsedTime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1E6;
     printf("The time was %.3f seconds.\n", elapsedTime);
     return EXIT_SUCCESS;
 }
 
 void calculate()
 {
-    int i;
-    int pNum;
     int *inputPowers;
-    int lNum;
     laser *laserData;
     satin_process_args *process_args;
 
-    pNum = getInputPowers(&inputPowers);
-    lNum = getLaserData(&laserData);
+    int pNum = getInputPowers(&inputPowers);
+    int lNum = getLaserData(&laserData);
 
     if ((process_args = malloc(lNum * sizeof(satin_process_args))) == NULL) {
         perror(ERR);
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < lNum; i++) {
+    for (int i = 0; i < lNum; i++) {
         process_args[i].pNum = pNum;
         process_args[i].inputPowers = inputPowers;
         process_args[i].laserData = laserData[i];
@@ -73,16 +69,13 @@ void calculate()
 
 void calculateConcurrently()
 {
-    int i;
-    int pNum;
     int *inputPowers;
-    int lNum;
     laser *laserData;
     pthread_t *threads;
     satin_process_args *process_args;
 
-    pNum = getInputPowers(&inputPowers);
-    lNum = getLaserData(&laserData);
+    int pNum = getInputPowers(&inputPowers);
+    int lNum = getLaserData(&laserData);
 
     if ((threads = malloc(lNum * sizeof(pthread_t))) == NULL) {
         perror(ERR);
@@ -94,14 +87,14 @@ void calculateConcurrently()
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < lNum; i++) {
+    for (int i = 0; i < lNum; i++) {
         process_args[i].pNum = pNum;
         process_args[i].inputPowers = inputPowers;
         process_args[i].laserData = laserData[i];
         pthread_create(&threads[i], NULL, process, &process_args[i]);
     }
 
-    for (i = 0; i < lNum; i++) {
+    for (int i = 0; i < lNum; i++) {
         if (pthread_join(threads[i], NULL) != 0) {
             perror("Failed to join threads");
             exit(EXIT_FAILURE);
@@ -159,10 +152,7 @@ int getLaserData(laser **laserData)
 {
     int i = 0;
     int j = 9;
-    int rc = 0;
-    int buf = 25;
     char *laserDataFile = "laser.dat";
-    char *line;
     char *pattern =
     "((md|pi)[a-z]{2}\\.out)[ ]+([0-9]{2}\\.[0-9])[ ]+([0-9]+)[ ]+(MD|PI)";
     regex_t compiled;
@@ -187,13 +177,15 @@ int getLaserData(laser **laserData)
         exit(EXIT_FAILURE);
     }
 
-    rc = regcomp(&compiled, pattern, REG_EXTENDED);
+    int rc = regcomp(&compiled, pattern, REG_EXTENDED);
     if (rc != 0) {
         printf("Failed to compile regex: %d (%s)\n", rc,
                 get_regerror(rc, &compiled));
         exit(rc);
     }
 
+    int buf = 25;
+    char *line;
     if ((line = malloc(buf * sizeof(char))) == NULL) {
         perror(ERR);
         exit(EXIT_FAILURE);
@@ -298,8 +290,6 @@ int getLaserData(laser **laserData)
 
 void *process(void *arg)
 {
-    int i;
-    int j;
     time_t the_time;
     satin_process_args* process_args = (satin_process_args*) arg;
     laser laserData = process_args->laserData;
@@ -318,10 +308,10 @@ void *process(void *arg)
             ctime(&the_time), laserData.dischargePressure,
             laserData.smallSignalGain, laserData.carbonDioxide);
 
-    for (i = 0; i < process_args->pNum; i++) {
+    for (int i = 0; i < process_args->pNum; i++) {
         int gaussiansSize = gaussianCalculation(process_args->inputPowers[i],
                 laserData.smallSignalGain, &gaussianData);
-        for (j = 0; j < gaussiansSize; j++) {
+        for (int j = 0; j < gaussiansSize; j++) {
             fprintf(fp, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n",
                     gaussianData[j].inputPower,
                     gaussianData[j].outputPower,
@@ -348,13 +338,8 @@ int gaussianCalculation(int inputPower, float smallSignalGain,
         gaussian **gaussianData)
 {
     int i;
-    int j;
     int k = 17;
-    int saturationIntensity;
-    double *expr1;
-    double inputIntensity;
-    double expr2;
-    double r;
+    double *expr1, *expr1temp;
     gaussian *gaussians;
 
     if ((gaussians = malloc(k * sizeof(gaussian))) == NULL) {
@@ -362,31 +347,34 @@ int gaussianCalculation(int inputPower, float smallSignalGain,
         exit(EXIT_FAILURE);
     }
 
-    if ((expr1 = malloc(INCR * sizeof(double))) == NULL) {
+    if ((expr1temp = expr1 = malloc(INCR * sizeof(double))) == NULL) {
         perror(ERR);
         exit(EXIT_FAILURE);
     }
 
     for (i = 0; i < INCR; i++) {
         double zInc = ((double) i - INCR / 2) / 25;
-        expr1[i] = zInc * 2 * DZ / (Z12 + pow(zInc, 2));
+        *expr1temp = zInc * 2 * DZ / (Z12 + pow(zInc, 2));
+        expr1temp++;
     }
 
-    inputIntensity = 2 * inputPower / AREA;
-    expr2 = smallSignalGain / 32E3 * DZ;
+    double inputIntensity = 2 * inputPower / AREA;
+    double expr2 = smallSignalGain / 32E3 * DZ;
 
     i = 0;
-    for (saturationIntensity = 10E3; saturationIntensity <= 25E3;
+    for (int saturationIntensity = 10E3; saturationIntensity <= 25E3;
             saturationIntensity += 1E3) {
         double expr3 = saturationIntensity * expr2;
         double outputPower = 0.0;
-        for (r = 0.0; r <= 0.5; r += DR) {
+        for (double r = 0.0; r <= 0.5; r += DR) {
             double outputIntensity = inputIntensity
                     * exp(-2 * pow(r, 2) / RAD2);
-            for (j = 0; j < INCR; j++) {
+            expr1temp = expr1;
+            for (int j = 0; j < INCR; j++) {
                 outputIntensity *= (1
                         + expr3 / (saturationIntensity + outputIntensity)
-                        - expr1[j]);
+                        - *expr1temp);
+                expr1temp++;
             }
             outputPower += outputIntensity * EXPR * r;
         }
