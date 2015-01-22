@@ -10,7 +10,7 @@ clean:
 
 satin:
 	@echo 'Building target: $@'
-	gcc ${CFLAGS} src/satin.c -lm -lpthread -o satin
+	gcc -o satin src/satin.c ${CFLAGS} -lm -lpthread 
 
 bench: satin
 	@echo Executing ...

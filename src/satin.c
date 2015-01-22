@@ -116,8 +116,7 @@ int getInputPowers(int **inputPowers)
     FILE *fp;
 
     if ((fp = fopen(inputPowerFile, "r")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", inputPowerFile,
-                strerror(errno));
+        fprintf(stderr, "Error opening %s: %s\n", inputPowerFile, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -139,8 +138,7 @@ int getInputPowers(int **inputPowers)
     *inputPowers = ptr;
 
     if (fclose(fp) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", inputPowerFile,
-                strerror(errno));
+        fprintf(stderr, "Error closing %s: %s\n", inputPowerFile, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -254,8 +252,7 @@ int getLaserData(laser **laserData)
     FILE *fp;
 
     if ((fp = fopen(laserDataFile, "r")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", laserDataFile,
-                strerror(errno));
+        fprintf(stderr, "Error opening %s: %s\n", laserDataFile, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -264,8 +261,7 @@ int getLaserData(laser **laserData)
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fp, "%s %lf %d %s\n", ptr[i].outputFile,
-            &ptr[i].smallSignalGain, &ptr[i].dischargePressure,
+    while (fscanf(fp, "%s %lf %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure,
             ptr[i].carbonDioxide) != EOF) {
         i++;
         if (i == j) {
@@ -279,8 +275,7 @@ int getLaserData(laser **laserData)
     *laserData = ptr;
 
     if (fclose(fp) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", laserDataFile,
-                strerror(errno));
+        fprintf(stderr, "Error closing %s: %s\n", laserDataFile, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -294,7 +289,7 @@ void *process(void *arg)
     satin_process_args* process_args = (satin_process_args*) arg;
     laser laserData = process_args->laserData;
     char *outputFile = laserData.outputFile;
-    gaussian *gaussianData;
+    gaussian *gaussians;
     FILE *fp;
 
     if ((fp = fopen(outputFile, "w+")) == NULL) {
@@ -305,19 +300,14 @@ void *process(void *arg)
     time(&the_time);
     fprintf(fp,
             "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
-            ctime(&the_time), laserData.dischargePressure,
-            laserData.smallSignalGain, laserData.carbonDioxide);
+            ctime(&the_time), laserData.dischargePressure, laserData.smallSignalGain, laserData.carbonDioxide);
 
     for (int i = 0; i < process_args->pNum; i++) {
-        int gaussiansSize = gaussianCalculation(process_args->inputPowers[i],
-                laserData.smallSignalGain, &gaussianData);
+        int gaussiansSize = gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussians);
         for (int j = 0; j < gaussiansSize; j++) {
-            fprintf(fp, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n",
-                    gaussianData[j].inputPower,
-                    gaussianData[j].outputPower,
-                    gaussianData[j].saturationIntensity,
-                    gaussianData[j].logOutputPowerDividedByInputPower,
-                    gaussianData[j].ouputPowerMinusInputPower);
+            fprintf(fp, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", gaussians[j].inputPower, gaussians[j].outputPower,
+                    gaussians[j].saturationIntensity, gaussians[j].logOutputPowerDividedByInputPower,
+                    gaussians[j].ouputPowerMinusInputPower);
         }
     }
 
@@ -330,70 +320,60 @@ void *process(void *arg)
         exit(EXIT_FAILURE);
     }
 
-    free(gaussianData);
+    free(gaussians);
     return NULL;
 }
 
-int gaussianCalculation(int inputPower, float smallSignalGain,
-        gaussian **gaussianData)
+int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussians)
 {
-    int i;
     int k = 17;
-    double *expr1, *expr1temp;
-    gaussian *gaussians;
+    double *expr1;
+    gaussian *gaussianData;
 
-    if ((gaussians = malloc(k * sizeof(gaussian))) == NULL) {
+    if ((gaussianData = malloc(k * sizeof(gaussian))) == NULL) {
         perror(ERR);
         exit(EXIT_FAILURE);
     }
 
-    if ((expr1temp = expr1 = malloc(INCR * sizeof(double))) == NULL) {
+    if ((expr1 = malloc(INCR * sizeof(double))) == NULL) {
         perror(ERR);
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < INCR; i++) {
+    for (int i = 0; i < INCR; i++) {
         double zInc = ((double) i - INCR / 2) / 25;
-        *expr1temp = zInc * 2 * DZ / (Z12 + pow(zInc, 2));
-        expr1temp++;
+        expr1[i] = zInc * 2 * DZ / (Z12 + pow(zInc, 2));
     }
 
     double inputIntensity = 2 * inputPower / AREA;
     double expr2 = smallSignalGain / 32E3 * DZ;
 
-    i = 0;
-    for (int saturationIntensity = 10E3; saturationIntensity <= 25E3;
-            saturationIntensity += 1E3) {
+    int i = 0;
+    for (int saturationIntensity = 10E3; saturationIntensity <= 25E3; saturationIntensity += 1E3) {
         double expr3 = saturationIntensity * expr2;
         double outputPower = 0.0;
         for (double r = 0.0; r <= 0.5; r += DR) {
-            double outputIntensity = inputIntensity
-                    * exp(-2 * pow(r, 2) / RAD2);
-            expr1temp = expr1;
+            double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / RAD2);
             for (int j = 0; j < INCR; j++) {
-                outputIntensity *= (1
-                        + expr3 / (saturationIntensity + outputIntensity)
-                        - *expr1temp);
-                expr1temp++;
+                outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j]);
             }
             outputPower += outputIntensity * EXPR * r;
         }
-        gaussians[i].inputPower = inputPower;
-        gaussians[i].saturationIntensity = saturationIntensity;
-        gaussians[i].outputPower = outputPower;
-        gaussians[i].logOutputPowerDividedByInputPower = log(outputPower / inputPower);
-        gaussians[i].ouputPowerMinusInputPower = outputPower - inputPower;
+        gaussianData[i].inputPower = inputPower;
+        gaussianData[i].saturationIntensity = saturationIntensity;
+        gaussianData[i].outputPower = outputPower;
+        gaussianData[i].logOutputPowerDividedByInputPower = log(outputPower / inputPower);
+        gaussianData[i].ouputPowerMinusInputPower = outputPower - inputPower;
         i++;
         if (i == k) {
-            if ((gaussians = realloc(gaussians, (k *= 2) * sizeof(gaussian)))
-                    == NULL) {
+            if ((gaussianData = realloc(gaussianData, (k *= 2) * sizeof(gaussian))) == NULL) {
                 perror("Failed to reallocate memory");
                 exit(EXIT_FAILURE);
             }
         }
     }
 
-    *gaussianData = gaussians;
+    *gaussians = gaussianData;
 
     free(expr1);
     return i;
