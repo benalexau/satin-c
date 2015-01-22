@@ -153,9 +153,11 @@ int getLaserData(laser **laserData)
 {
     int i = 0;
     int j = 9;
+    int rc;
+    int buf = 25;
     char *laserDataFile = "laser.dat";
-    char *pattern =
-    "((md|pi)[a-z]{2}\\.out)[ ]+([0-9]{2}\\.[0-9])[ ]+([0-9]+)[ ]+(MD|PI)";
+    char *pattern = "((md|pi)[a-z]{2}\\.out)[ ]+([0-9]{2}\\.[0-9])[ ]+([0-9]+)[ ]+(MD|PI)";
+    char *line;
     regex_t compiled;
     size_t nmatch = 6;
     regmatch_t *matchptr;
@@ -163,8 +165,7 @@ int getLaserData(laser **laserData)
     FILE *fp;
 
     if ((fp = fopen(laserDataFile, "r")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", laserDataFile,
-                strerror(errno));
+        fprintf(stderr, "Error opening %s: %s\n", laserDataFile, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -178,15 +179,12 @@ int getLaserData(laser **laserData)
         exit(EXIT_FAILURE);
     }
 
-    int rc = regcomp(&compiled, pattern, REG_EXTENDED);
+    rc = regcomp(&compiled, pattern, REG_EXTENDED);
     if (rc != 0) {
-        printf("Failed to compile regex: %d (%s)\n", rc,
-                get_regerror(rc, &compiled));
+        printf("Failed to compile regex: %d (%s)\n", rc, get_regerror(rc, &compiled));
         exit(rc);
     }
 
-    int buf = 25;
-    char *line;
     if ((line = malloc(buf * sizeof(char))) == NULL) {
         perror(ERR);
         exit(EXIT_FAILURE);
@@ -195,8 +193,7 @@ int getLaserData(laser **laserData)
     while (fgets(line, buf, fp) != NULL) {
         rc = regexec(&compiled, line, nmatch, matchptr, 0);
         if (rc != 0) {
-            printf("Failed to execute regex: %d (%s)\n", rc,
-                    get_regerror(rc, &compiled));
+            printf("Failed to execute regex: %d (%s)\n", rc, get_regerror(rc, &compiled));
             exit(rc);
         }
 
@@ -224,8 +221,7 @@ int getLaserData(laser **laserData)
     *laserData = ptr;
 
     if (fclose(fp) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", laserDataFile,
-                strerror(errno));
+        fprintf(stderr, "Error closing %s: %s\n", laserDataFile, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
