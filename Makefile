@@ -1,5 +1,5 @@
 LASER = default
-CFLAGS = -O3 -Wall -std=c99 -pedantic -D${LASER}
+CFLAGS = -O3 -Wall -std=c90 -ansi -pedantic -D${LASER}
 
 default: all
 
