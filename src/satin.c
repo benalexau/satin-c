@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <errno.h>
 
-#define PI    3.14159265358979323846264338327950288
+#define PI    3.14159265358979323846264338327950288L
 #define RAD   18E-2
 #define RAD2  (RAD * RAD)
 #define W1    3E-1
