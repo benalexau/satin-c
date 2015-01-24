@@ -94,12 +94,15 @@ void calculate_concurrently()
         process_args[i].pnum = pnum;
         process_args[i].input_powers = input_powers;
         process_args[i].laser_data = laser_data[i];
-        pthread_create(&threads[i], NULL, process, &process_args[i]);
+        if (pthread_create(&threads[i], NULL, process, &process_args[i])) {
+            perror("Failed to create thread");
+            exit(EXIT_FAILURE);
+        }
     }
 
     for (i = 0; i < lnum; i++) {
-        if (pthread_join(threads[i], NULL) != 0) {
-            perror("Failed to join threads");
+        if (pthread_join(threads[i], NULL)) {
+            perror("Failed to join thread");
             exit(EXIT_FAILURE);
         }
     }
@@ -182,7 +185,7 @@ int get_laser_data(laser **laser_data)
     rc = regcomp(&compiled, pattern, REG_EXTENDED);
     if (rc != 0) {
         printf("Failed to compile regex: %d (%s)\n", rc, get_regerror(rc, &compiled));
-        exit(rc);
+        exit(EXIT_FAILURE);
     }
 
     if ((line = malloc(buf * sizeof(char))) == NULL) {
@@ -192,7 +195,7 @@ int get_laser_data(laser **laser_data)
 
     while (fgets(line, buf, fp) != NULL) {
         rc = regexec(&compiled, line, nmatch, matchptr, 0);
-        if (rc != 0) {
+        if (rc) {
             printf("Failed to execute regex: %d (%s)\n", rc, get_regerror(rc, &compiled));
             exit(rc);
         }
