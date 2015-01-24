@@ -287,7 +287,7 @@ void *process(void *arg)
     int i;
     int j;
     time_t the_time;
-    satin_process_args* process_args = (satin_process_args*) arg;
+    satin_process_args *process_args = (satin_process_args*) arg;
     laser laser_data = process_args->laser_data;
     char *output_file = laser_data.output_file;
     gaussian *gaussians;
