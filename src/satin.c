@@ -23,7 +23,7 @@
 #define EXPR  (2 * PI * DR)
 #define INCR  8001
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     struct timeval t1;
     struct timeval t2;
@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     if (argc > 1 && strcmp(argv[1], "-single") == 0) {
         calculate();
     } else {
-        calculateConcurrently();
+        calculate_concurrently();
     }
     gettimeofday(&t2, NULL);
 
@@ -49,18 +49,18 @@ void calculate()
     laser *laserData;
     satin_process_args *process_args;
 
-    int pNum = getInputPowers(&inputPowers);
-    int lNum = getLaserData(&laserData);
+    int pNum = get_input_powers(&inputPowers);
+    int lNum = get_laser_data(&laserData);
 
     if ((process_args = malloc(lNum * sizeof(satin_process_args))) == NULL) {
-        perror(ERR);
+        perror("Failed to allocate memory for process_args");
         exit(EXIT_FAILURE);
     }
 
     for (i = 0; i < lNum; i++) {
-        process_args[i].pNum = pNum;
-        process_args[i].inputPowers = inputPowers;
-        process_args[i].laserData = laserData[i];
+        process_args[i].pnum = pNum;
+        process_args[i].input_powers = inputPowers;
+        process_args[i].laser_data = laserData[i];
         process(&process_args[i]);
     }
 
@@ -69,62 +69,62 @@ void calculate()
     free(process_args);
 }
 
-void calculateConcurrently()
+void calculate_concurrently()
 {
     int i;
-    int *inputPowers;
-    laser *laserData;
+    int *input_powers;
+    laser *laser_data;
     pthread_t *threads;
     satin_process_args *process_args;
 
-    int pNum = getInputPowers(&inputPowers);
-    int lNum = getLaserData(&laserData);
+    int pnum = get_input_powers(&input_powers);
+    int lnum = get_laser_data(&laser_data);
 
-    if ((threads = malloc(lNum * sizeof(pthread_t))) == NULL) {
-        perror(ERR);
+    if ((threads = malloc(lnum * sizeof(pthread_t))) == NULL) {
+        perror("Failed to allocate memory for threads");
         exit(EXIT_FAILURE);
     }
 
-    if ((process_args = malloc(lNum * sizeof(satin_process_args))) == NULL) {
-        perror(ERR);
+    if ((process_args = malloc(lnum * sizeof(satin_process_args))) == NULL) {
+        perror("Failed to allocate memory for process_args");
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < lNum; i++) {
-        process_args[i].pNum = pNum;
-        process_args[i].inputPowers = inputPowers;
-        process_args[i].laserData = laserData[i];
+    for (i = 0; i < lnum; i++) {
+        process_args[i].pnum = pnum;
+        process_args[i].input_powers = input_powers;
+        process_args[i].laser_data = laser_data[i];
         pthread_create(&threads[i], NULL, process, &process_args[i]);
     }
 
-    for (i = 0; i < lNum; i++) {
+    for (i = 0; i < lnum; i++) {
         if (pthread_join(threads[i], NULL) != 0) {
             perror("Failed to join threads");
             exit(EXIT_FAILURE);
         }
     }
 
-    free(inputPowers);
-    free(laserData);
+    free(input_powers);
+    free(laser_data);
     free(process_args);
     free(threads);
 }
 
-int getInputPowers(int **inputPowers)
+int get_input_powers(int **input_powers)
 {
     int i = 0;
     int j = 6;
     int *ptr;
-    char *inputPowerFile = "pin.dat";
+    char *input_power_file = "pin.dat";
     FILE *fp;
 
-    if ((fp = fopen(inputPowerFile, "r")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", inputPowerFile, strerror(errno));
+    if ((fp = fopen(input_power_file, "r")) == NULL) {
+        fprintf(stderr, "Error opening %s: %s\n", input_power_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
     if ((ptr = malloc(j * sizeof(int))) == NULL) {
-        perror(ERR);
+        perror("Failed to allocate memory for input_powers");
         exit(EXIT_FAILURE);
     }
 
@@ -138,10 +138,10 @@ int getInputPowers(int **inputPowers)
         }
     }
 
-    *inputPowers = ptr;
+    *input_powers = ptr;
 
     if (fclose(fp) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", inputPowerFile, strerror(errno));
+        fprintf(stderr, "Error closing %s: %s\n", input_power_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -149,13 +149,13 @@ int getInputPowers(int **inputPowers)
 }
 
 #ifdef REGEX
-int getLaserData(laser **laserData)
+int get_laser_data(laser **laser_data)
 {
     int i = 0;
     int j = 9;
     int rc;
     int buf = 25;
-    char *laserDataFile = "laser.dat";
+    char *laser_data_file = "laser.dat";
     char *pattern = "((md|pi)[a-z]{2}\\.out)[ ]+([0-9]{2}\\.[0-9])[ ]+([0-9]+)[ ]+(MD|PI)";
     char *line;
     regex_t compiled;
@@ -164,18 +164,18 @@ int getLaserData(laser **laserData)
     laser *ptr;
     FILE *fp;
 
-    if ((fp = fopen(laserDataFile, "r")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", laserDataFile, strerror(errno));
+    if ((fp = fopen(laser_data_file, "r")) == NULL) {
+        fprintf(stderr, "Error opening %s: %s\n", laser_data_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
     if ((ptr = malloc(j * sizeof(laser))) == NULL) {
-        perror(ERR);
+        perror("Failed to allocate memory for laser");
         exit(EXIT_FAILURE);
     }
 
     if ((matchptr = malloc(nmatch * sizeof(regmatch_t))) == NULL) {
-        perror(ERR);
+        perror("Failed to allocate memory for regex pointer");
         exit(EXIT_FAILURE);
     }
 
@@ -186,7 +186,7 @@ int getLaserData(laser **laserData)
     }
 
     if ((line = malloc(buf * sizeof(char))) == NULL) {
-        perror(ERR);
+        perror("Failed to allocate memory for line");
         exit(EXIT_FAILURE);
     }
 
@@ -198,16 +198,16 @@ int getLaserData(laser **laserData)
         }
 
         line[matchptr[1].rm_eo] = 0;
-        strcpy(ptr[i].outputFile, line + matchptr[1].rm_so);
+        strcpy(ptr[i].output_file, line + matchptr[1].rm_so);
 
         line[matchptr[3].rm_eo] = 0;
-        ptr[i].smallSignalGain = atof(line + matchptr[3].rm_so);
+        ptr[i].small_signal_gain = atof(line + matchptr[3].rm_so);
 
         line[matchptr[4].rm_eo] = 0;
-        ptr[i].dischargePressure = atoi(line + matchptr[4].rm_so);
+        ptr[i].discharge_pressure = atoi(line + matchptr[4].rm_so);
 
         line[matchptr[5].rm_eo] = 0;
-        strcpy(ptr[i].carbonDioxide, line + matchptr[5].rm_so);
+        strcpy(ptr[i].carbon_dioxide, line + matchptr[5].rm_so);
 
         i++;
         if (i == j) {
@@ -218,14 +218,14 @@ int getLaserData(laser **laserData)
         }
     }
 
-    *laserData = ptr;
+    *laser_data = ptr;
 
     if (fclose(fp) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", laserDataFile, strerror(errno));
+        fprintf(stderr, "Error closing %s: %s\n", laser_data_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
-    printf("Parsed %d records of %s with regex\n", i, laserDataFile);
+    printf("Parsed %d records of %s with regex\n", i, laser_data_file);
 
     regfree(&compiled);
     free(line);
@@ -242,26 +242,26 @@ char *get_regerror(int errcode, regex_t *compiled)
 }
 
 #else
-int getLaserData(laser **laserData)
+int get_laser_data(laser **laser_data)
 {
     int i = 0;
     int j = 9;
-    char *laserDataFile = "laser.dat";
+    char *laser_data_file = "laser.dat";
     laser *ptr;
     FILE *fp;
 
-    if ((fp = fopen(laserDataFile, "r")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", laserDataFile, strerror(errno));
+    if ((fp = fopen(laser_data_file, "r")) == NULL) {
+        fprintf(stderr, "Error opening %s: %s\n", laser_data_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
     if ((ptr = malloc(j * sizeof(laser))) == NULL) {
-        perror(ERR);
+        perror("Failed to allocate memory for laser");
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fp, "%s %lf %d %s\n", ptr[i].outputFile, &ptr[i].smallSignalGain, &ptr[i].dischargePressure,
-            ptr[i].carbonDioxide) != EOF) {
+    while (fscanf(fp, "%s %lf %d %s\n", ptr[i].output_file, &ptr[i].small_signal_gain, &ptr[i].discharge_pressure,
+            ptr[i].carbon_dioxide) != EOF) {
         i++;
         if (i == j) {
             if ((ptr = realloc(ptr, (j *= 2) * sizeof(laser))) == NULL) {
@@ -271,10 +271,10 @@ int getLaserData(laser **laserData)
         }
     }
 
-    *laserData = ptr;
+    *laser_data = ptr;
 
     if (fclose(fp) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", laserDataFile, strerror(errno));
+        fprintf(stderr, "Error closing %s: %s\n", laser_data_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -288,27 +288,27 @@ void *process(void *arg)
     int j;
     time_t the_time;
     satin_process_args* process_args = (satin_process_args*) arg;
-    laser laserData = process_args->laserData;
-    char *outputFile = laserData.outputFile;
+    laser laser_data = process_args->laser_data;
+    char *output_file = laser_data.output_file;
     gaussian *gaussians;
     FILE *fp;
 
-    if ((fp = fopen(outputFile, "w+")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", outputFile, strerror(errno));
+    if ((fp = fopen(output_file, "w+")) == NULL) {
+        fprintf(stderr, "Error opening %s: %s\n", output_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
     time(&the_time);
     fprintf(fp,
             "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
-            ctime(&the_time), laserData.dischargePressure, laserData.smallSignalGain, laserData.carbonDioxide);
+            ctime(&the_time), laser_data.discharge_pressure, laser_data.small_signal_gain, laser_data.carbon_dioxide);
 
-    for (i = 0; i < process_args->pNum; i++) {
-        int gaussiansSize = gaussianCalculation(process_args->inputPowers[i], laserData.smallSignalGain, &gaussians);
+    for (i = 0; i < process_args->pnum; i++) {
+        int gaussiansSize = gaussian_calculation(process_args->input_powers[i], laser_data.small_signal_gain, &gaussians);
         for (j = 0; j < gaussiansSize; j++) {
-            fprintf(fp, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", gaussians[j].inputPower, gaussians[j].outputPower,
-                    gaussians[j].saturationIntensity, gaussians[j].logOutputPowerDividedByInputPower,
-                    gaussians[j].ouputPowerMinusInputPower);
+            fprintf(fp, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", gaussians[j].input_power, gaussians[j].output_power,
+                    gaussians[j].saturation_intensity, gaussians[j].log_output_power_divided_by_input_power,
+                    gaussians[j].ouput_power_minus_input_power);
         }
     }
 
@@ -317,7 +317,7 @@ void *process(void *arg)
     fflush(fp);
 
     if (fclose(fp) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", outputFile, strerror(errno));
+        fprintf(stderr, "Error closing %s: %s\n", output_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -325,62 +325,62 @@ void *process(void *arg)
     return NULL;
 }
 
-int gaussianCalculation(int inputPower, float smallSignalGain, gaussian **gaussians)
+int gaussian_calculation(int input_power, float small_signal_gain, gaussian **gaussians)
 {
     int i;
     int j;
     int k = 17;
-    int saturationIntensity;
+    int saturation_intensity;
     double *expr1;
-    double inputIntensity;
+    double input_intensity;
     double expr2;
     double r;
-    gaussian *gaussianData;
+    gaussian *gaussian_data;
 
-    if ((gaussianData = malloc(k * sizeof(gaussian))) == NULL) {
-        perror(ERR);
+    if ((gaussian_data = malloc(k * sizeof(gaussian))) == NULL) {
+        perror("Failed to allocate memory for gaussian_data");
         exit(EXIT_FAILURE);
     }
 
     if ((expr1 = malloc(INCR * sizeof(double))) == NULL) {
-        perror(ERR);
+        perror("Failed to allocate memory for expr1");
         exit(EXIT_FAILURE);
     }
 
     for (i = 0; i < INCR; i++) {
-        double zInc = ((double) i - INCR / 2) / 25;
-        expr1[i] = zInc * 2 * DZ / (Z12 + pow(zInc, 2));
+        double z_inc = ((double) i - INCR / 2) / 25;
+        expr1[i] = z_inc * 2 * DZ / (Z12 + pow(z_inc, 2));
     }
 
-    inputIntensity = 2 * inputPower / AREA;
-    expr2 = smallSignalGain / 32E3 * DZ;
+    input_intensity = 2 * input_power / AREA;
+    expr2 = small_signal_gain / 32E3 * DZ;
 
     i = 0;
-    for (saturationIntensity = 10E3; saturationIntensity <= 25E3; saturationIntensity += 1E3) {
-        double expr3 = saturationIntensity * expr2;
-        double outputPower = 0.0;
+    for (saturation_intensity = 10E3; saturation_intensity <= 25E3; saturation_intensity += 1E3) {
+        double expr3 = saturation_intensity * expr2;
+        double output_power = 0.0;
         for (r = 0.0; r <= 0.5; r += DR) {
-            double outputIntensity = inputIntensity * exp(-2 * pow(r, 2) / RAD2);
+            double output_intensity = input_intensity * exp(-2 * pow(r, 2) / RAD2);
             for (j = 0; j < INCR; j++) {
-                outputIntensity *= (1 + expr3 / (saturationIntensity + outputIntensity) - expr1[j]);
+                output_intensity *= (1 + expr3 / (saturation_intensity + output_intensity) - expr1[j]);
             }
-            outputPower += outputIntensity * EXPR * r;
+            output_power += output_intensity * EXPR * r;
         }
-        gaussianData[i].inputPower = inputPower;
-        gaussianData[i].saturationIntensity = saturationIntensity;
-        gaussianData[i].outputPower = outputPower;
-        gaussianData[i].logOutputPowerDividedByInputPower = log(outputPower / inputPower);
-        gaussianData[i].ouputPowerMinusInputPower = outputPower - inputPower;
+        gaussian_data[i].input_power = input_power;
+        gaussian_data[i].saturation_intensity = saturation_intensity;
+        gaussian_data[i].output_power = output_power;
+        gaussian_data[i].log_output_power_divided_by_input_power = log(output_power / input_power);
+        gaussian_data[i].ouput_power_minus_input_power = output_power - input_power;
         i++;
         if (i == k) {
-            if ((gaussianData = realloc(gaussianData, (k *= 2) * sizeof(gaussian))) == NULL) {
+            if ((gaussian_data = realloc(gaussian_data, (k *= 2) * sizeof(gaussian))) == NULL) {
                 perror("Failed to reallocate memory");
                 exit(EXIT_FAILURE);
             }
         }
     }
 
-    *gaussians = gaussianData;
+    *gaussians = gaussian_data;
 
     free(expr1);
     return i;

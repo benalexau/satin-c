@@ -8,38 +8,35 @@
 #include <regex.h>
 #endif
 
-#define ERR "Failed to allocate memory"
-
 typedef struct {
-    char outputFile[9];
-    double smallSignalGain;
-    int dischargePressure;
-    char carbonDioxide[3];
+    char output_file[9];
+    double small_signal_gain;
+    int discharge_pressure;
+    char carbon_dioxide[3];
 } laser;
 
 typedef struct {
-    int pNum;
-    int *inputPowers;
-    laser laserData;
+    int pnum;
+    int *input_powers;
+    laser laser_data;
 } satin_process_args;
 
 typedef struct {
-    int inputPower;
-    int saturationIntensity;
-    double outputPower;
-    double logOutputPowerDividedByInputPower;
-    double ouputPowerMinusInputPower;
+    int input_power;
+    int saturation_intensity;
+    double output_power;
+    double log_output_power_divided_by_input_power;
+    double ouput_power_minus_input_power;
 } gaussian;
 
-void calculateConcurrently();
 void calculate();
-int getInputPowers(int **inputPowers);
-int getLaserData(laser **laserData);
+void calculate_concurrently();
+int get_input_powers(int **input_powers);
+int get_laser_data(laser **laser_data);
 #ifdef REGEX
 char *get_regerror(int errcode, regex_t *preg);
 #endif
 void *process(void *arg);
-int gaussianCalculation(int inputPower, float smallSignalGain,
-        gaussian **gaussianData);
+int gaussian_calculation(int input_power, float small_signal_gain, gaussian **gaussian_data);
 
 #endif
