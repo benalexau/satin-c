@@ -1,4 +1,4 @@
-LASER = REGEX
+LASER = default
 CFLAGS = -O3 -Wall -std=c90 -ansi -pedantic -D${LASER}
 
 default: all

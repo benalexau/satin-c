@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
 
     elapsedTime = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1E6;
     printf("The time was %.3f seconds.\n", elapsedTime);
+    pthread_exit(NULL);
     return EXIT_SUCCESS;
 }
 
@@ -72,6 +73,7 @@ void calculate()
 void calculate_concurrently()
 {
     int i;
+    int rc;
     int *input_powers;
     laser *laser_data;
     pthread_t *threads;
@@ -94,15 +96,17 @@ void calculate_concurrently()
         process_args[i].pnum = pnum;
         process_args[i].input_powers = input_powers;
         process_args[i].laser_data = laser_data[i];
-        if (pthread_create(&threads[i], NULL, process, &process_args[i])) {
-            perror("Failed to create thread");
+        rc = pthread_create(&threads[i], NULL, process, &process_args[i]);
+        if (rc) {
+            printf("Failed to create thread, return code is %d\n", rc);
             exit(EXIT_FAILURE);
         }
     }
 
     for (i = 0; i < lnum; i++) {
-        if (pthread_join(threads[i], NULL)) {
-            perror("Failed to join thread");
+        rc = pthread_join(threads[i], NULL);
+        if (rc) {
+            printf("Failed to join thread, error code is %d\n", rc);
             exit(EXIT_FAILURE);
         }
     }
@@ -183,7 +187,7 @@ int get_laser_data(laser **laser_data)
     }
 
     rc = regcomp(&compiled, pattern, REG_EXTENDED);
-    if (rc != 0) {
+    if (rc) {
         printf("Failed to compile regex: %d (%s)\n", rc, get_regerror(rc, &compiled));
         exit(EXIT_FAILURE);
     }
@@ -325,6 +329,7 @@ void *process(void *arg)
     }
 
     free(gaussians);
+    pthread_exit(arg);
     return NULL;
 }
 
