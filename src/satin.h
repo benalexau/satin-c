@@ -26,7 +26,7 @@ typedef struct {
     int saturation_intensity;
     double output_power;
     double log_output_power_divided_by_input_power;
-    double ouput_power_minus_input_power;
+    double output_power_minus_input_power;
 } gaussian;
 
 void calculate();
