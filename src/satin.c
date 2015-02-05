@@ -98,7 +98,7 @@ void calculate_concurrently()
         process_args[i].laser_data = lasers[i];
         rc = pthread_create(&threads[i], NULL, process, &process_args[i]);
         if (rc) {
-            printf("Failed to create thread, return code is %d\n", rc);
+            printf("Failed to create thread %d, return code is %d\n", i, rc);
             exit(EXIT_FAILURE);
         }
     }
@@ -106,7 +106,7 @@ void calculate_concurrently()
     for (i = 0; i < lnum; i++) {
         rc = pthread_join(threads[i], NULL);
         if (rc) {
-            printf("Failed to join thread, error code is %d\n", rc);
+            printf("Failed to join thread %d, error code is %d\n", i, rc);
             exit(EXIT_FAILURE);
         }
     }
@@ -168,7 +168,7 @@ int get_laser_data(laser **lasers)
     regex_t compiled;
     size_t nmatch = 6;
     regmatch_t *match_ptr;
-    laser *laser_ptr;
+    laser *lasers_ptr;
     FILE *fp;
 
     if ((fp = fopen(laser_data_file, "r")) == NULL) {
@@ -176,8 +176,8 @@ int get_laser_data(laser **lasers)
         exit(EXIT_FAILURE);
     }
 
-    if ((laser_ptr = malloc(j * sizeof(laser))) == NULL) {
-        perror("Failed to allocate memory for laser_ptr");
+    if ((lasers_ptr = malloc(j * sizeof(laser))) == NULL) {
+        perror("Failed to allocate memory for lasers_ptr");
         exit(EXIT_FAILURE);
     }
 
@@ -205,27 +205,27 @@ int get_laser_data(laser **lasers)
         }
 
         line[match_ptr[1].rm_eo] = 0;
-        strcpy(laser_ptr[i].output_file, line + match_ptr[1].rm_so);
+        strcpy(lasers_ptr[i].output_file, line + match_ptr[1].rm_so);
 
         line[match_ptr[3].rm_eo] = 0;
-        laser_ptr[i].small_signal_gain = atof(line + match_ptr[3].rm_so);
+        lasers_ptr[i].small_signal_gain = atof(line + match_ptr[3].rm_so);
 
         line[match_ptr[4].rm_eo] = 0;
-        laser_ptr[i].discharge_pressure = atoi(line + match_ptr[4].rm_so);
+        lasers_ptr[i].discharge_pressure = atoi(line + match_ptr[4].rm_so);
 
         line[match_ptr[5].rm_eo] = 0;
-        strcpy(laser_ptr[i].carbon_dioxide, line + match_ptr[5].rm_so);
+        strcpy(lasers_ptr[i].carbon_dioxide, line + match_ptr[5].rm_so);
 
         i++;
         if (i == j) {
-            if ((laser_ptr = realloc(laser_ptr, (j *= 2) * sizeof(laser))) == NULL) {
-                perror("Failed to reallocate memory for laser_ptr");
+            if ((lasers_ptr = realloc(lasers_ptr, (j *= 2) * sizeof(laser))) == NULL) {
+                perror("Failed to reallocate memory for lasers_ptr");
                 exit(EXIT_FAILURE);
             }
         }
     }
 
-    *lasers = laser_ptr;
+    *lasers = lasers_ptr;
 
     if (fclose(fp) == EOF) {
         fprintf(stderr, "Error closing %s: %s\n", laser_data_file, strerror(errno));
@@ -254,7 +254,7 @@ int get_laser_data(laser **lasers)
     int i = 0;
     int j = 9;
     char *laser_data_file = "laser.dat";
-    laser *laser_ptr;
+    laser *lasers_ptr;
     FILE *fp;
 
     if ((fp = fopen(laser_data_file, "r")) == NULL) {
@@ -262,23 +262,23 @@ int get_laser_data(laser **lasers)
         exit(EXIT_FAILURE);
     }
 
-    if ((laser_ptr = malloc(j * sizeof(laser))) == NULL) {
-        perror("Failed to allocate memory for laser_ptr");
+    if ((lasers_ptr = malloc(j * sizeof(laser))) == NULL) {
+        perror("Failed to allocate memory for lasers_ptr");
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fp, "%s %lf %d %s\n", laser_ptr[i].output_file, &laser_ptr[i].small_signal_gain,
-            &laser_ptr[i].discharge_pressure, laser_ptr[i].carbon_dioxide) != EOF) {
+    while (fscanf(fp, "%s %lf %d %s\n", lasers_ptr[i].output_file, &lasers_ptr[i].small_signal_gain,
+            &lasers_ptr[i].discharge_pressure, lasers_ptr[i].carbon_dioxide) != EOF) {
         i++;
         if (i == j) {
-            if ((laser_ptr = realloc(laser_ptr, (j *= 2) * sizeof(laser))) == NULL) {
-                perror("Failed to reallocate memory");
+            if ((lasers_ptr = realloc(lasers_ptr, (j *= 2) * sizeof(laser))) == NULL) {
+                perror("Failed to reallocate memory for lasers_ptr");
                 exit(EXIT_FAILURE);
             }
         }
     }
 
-    *lasers = laser_ptr;
+    *lasers = lasers_ptr;
 
     if (fclose(fp) == EOF) {
         fprintf(stderr, "Error closing %s: %s\n", laser_data_file, strerror(errno));
@@ -329,7 +329,6 @@ void *process(void *arg)
     }
 
     free(gaussians);
-    pthread_exit(arg);
     return NULL;
 }
 
@@ -343,10 +342,10 @@ int gaussian_calculation(int input_power, float small_signal_gain, gaussian **ga
     double input_intensity;
     double expr2;
     double r;
-    gaussian *ptr;
+    gaussian *gaussians_ptr;
 
-    if ((ptr = malloc(k * sizeof(gaussian))) == NULL) {
-        perror("Failed to allocate memory for gaussian ptr");
+    if ((gaussians_ptr = malloc(k * sizeof(gaussian))) == NULL) {
+        perror("Failed to allocate memory for gaussians_ptr");
         exit(EXIT_FAILURE);
     }
 
@@ -374,21 +373,21 @@ int gaussian_calculation(int input_power, float small_signal_gain, gaussian **ga
             }
             output_power += output_intensity * EXPR * r;
         }
-        ptr[i].input_power = input_power;
-        ptr[i].saturation_intensity = saturation_intensity;
-        ptr[i].output_power = output_power;
-        ptr[i].log_output_power_divided_by_input_power = log(output_power / input_power);
-        ptr[i].output_power_minus_input_power = output_power - input_power;
+        gaussians_ptr[i].input_power = input_power;
+        gaussians_ptr[i].saturation_intensity = saturation_intensity;
+        gaussians_ptr[i].output_power = output_power;
+        gaussians_ptr[i].log_output_power_divided_by_input_power = log(output_power / input_power);
+        gaussians_ptr[i].output_power_minus_input_power = output_power - input_power;
         i++;
         if (i == k) {
-            if ((ptr = realloc(ptr, (k *= 2) * sizeof(gaussian))) == NULL) {
-                perror("Failed to reallocate memory");
+            if ((gaussians_ptr = realloc(gaussians_ptr, (k *= 2) * sizeof(gaussian))) == NULL) {
+                perror("Failed to reallocate memory for gaussians_ptr");
                 exit(EXIT_FAILURE);
             }
         }
     }
 
-    *gaussians = ptr;
+    *gaussians = gaussians_ptr;
 
     free(expr1);
     return i;
