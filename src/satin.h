@@ -32,11 +32,11 @@ typedef struct {
 void calculate();
 void calculate_concurrently();
 int get_input_powers(int **input_powers);
-int get_laser_data(laser **laser_data);
+int get_laser_data(laser **lasers);
 #ifdef REGEX
 char *get_regerror(int errcode, regex_t *preg);
 #endif
 void *process(void *arg);
-int gaussian_calculation(int input_power, float small_signal_gain, gaussian **gaussian_data);
+int gaussian_calculation(int input_power, float small_signal_gain, gaussian **gaussians);
 
 #endif
