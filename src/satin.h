@@ -8,20 +8,20 @@
 #include <regex.h>
 #endif
 
-typedef struct {
+typedef struct laser {
     char output_file[9];
     double small_signal_gain;
     int discharge_pressure;
     char carbon_dioxide[3];
 } laser;
 
-typedef struct {
+typedef struct satin_process_args {
     int pnum;
     int *input_powers;
     laser laser_data;
 } satin_process_args;
 
-typedef struct {
+typedef struct gaussian {
     int input_power;
     int saturation_intensity;
     double output_power;
