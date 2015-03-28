@@ -8,35 +8,35 @@
 #include <regex.h>
 #endif
 
-typedef struct laser {
+typedef struct Laser {
     char output_file[9];
     double small_signal_gain;
     int discharge_pressure;
     char carbon_dioxide[3];
-} laser;
+} Laser;
 
-typedef struct satin_process_args {
+typedef struct SatinProcessArgs {
     int pnum;
     int *input_powers;
-    laser laser_data;
-} satin_process_args;
+    Laser laser_data;
+} SatinProcessArgs;
 
-typedef struct gaussian {
+typedef struct Gaussian {
     int input_power;
     int saturation_intensity;
     double output_power;
     double log_output_power_divided_by_input_power;
     double output_power_minus_input_power;
-} gaussian;
+} Gaussian;
 
 void calculate();
 void calculate_concurrently();
 int get_input_powers(int **input_powers);
-int get_laser_data(laser **lasers);
+int get_laser_data(Laser **lasers);
 #ifdef REGEX
 char *get_regerror(int errcode, regex_t *preg);
 #endif
 void *process(void *arg);
-int gaussian_calculation(int input_power, float small_signal_gain, gaussian **gaussians);
+int gaussian_calculation(int input_power, float small_signal_gain, Gaussian **gaussians);
 
 #endif

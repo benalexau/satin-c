@@ -47,13 +47,13 @@ void calculate()
 {
     int i;
     int *input_powers;
-    laser *lasers;
-    satin_process_args *process_args;
+    Laser *lasers;
+    SatinProcessArgs *process_args;
 
     int pNum = get_input_powers(&input_powers);
     int lNum = get_laser_data(&lasers);
 
-    if ((process_args = malloc(lNum * sizeof(satin_process_args))) == NULL) {
+    if ((process_args = malloc(lNum * sizeof(SatinProcessArgs))) == NULL) {
         perror("Failed to allocate memory for process_args");
         exit(EXIT_FAILURE);
     }
@@ -75,9 +75,9 @@ void calculate_concurrently()
     int i;
     int rc;
     int *input_powers;
-    laser *lasers;
+    Laser *lasers;
     pthread_t *threads;
-    satin_process_args *process_args;
+    SatinProcessArgs *process_args;
 
     int pnum = get_input_powers(&input_powers);
     int lnum = get_laser_data(&lasers);
@@ -87,7 +87,7 @@ void calculate_concurrently()
         exit(EXIT_FAILURE);
     }
 
-    if ((process_args = malloc(lnum * sizeof(satin_process_args))) == NULL) {
+    if ((process_args = malloc(lnum * sizeof(SatinProcessArgs))) == NULL) {
         perror("Failed to allocate memory for process_args");
         exit(EXIT_FAILURE);
     }
@@ -156,7 +156,7 @@ int get_input_powers(int **input_powers)
 }
 
 #ifdef REGEX
-int get_laser_data(laser **lasers)
+int get_laser_data(Laser **lasers)
 {
     int i = 0;
     int j = 9;
@@ -168,7 +168,7 @@ int get_laser_data(laser **lasers)
     regex_t compiled;
     size_t nmatch = 6;
     regmatch_t *match_ptr;
-    laser *lasers_ptr;
+    Laser *lasers_ptr;
     FILE *fp;
 
     if ((fp = fopen(laser_data_file, "r")) == NULL) {
@@ -176,7 +176,7 @@ int get_laser_data(laser **lasers)
         exit(EXIT_FAILURE);
     }
 
-    if ((lasers_ptr = malloc(j * sizeof(laser))) == NULL) {
+    if ((lasers_ptr = malloc(j * sizeof(Laser))) == NULL) {
         perror("Failed to allocate memory for lasers_ptr");
         exit(EXIT_FAILURE);
     }
@@ -218,7 +218,7 @@ int get_laser_data(laser **lasers)
 
         i++;
         if (i == j) {
-            if ((lasers_ptr = realloc(lasers_ptr, (j *= 2) * sizeof(laser))) == NULL) {
+            if ((lasers_ptr = realloc(lasers_ptr, (j *= 2) * sizeof(Laser))) == NULL) {
                 perror("Failed to reallocate memory for lasers_ptr");
                 exit(EXIT_FAILURE);
             }
@@ -249,12 +249,12 @@ char *get_regerror(int errcode, regex_t *compiled)
 }
 
 #else
-int get_laser_data(laser **lasers)
+int get_laser_data(Laser **lasers)
 {
     int i = 0;
     int j = 9;
     char *laser_data_file = "laser.dat";
-    laser *lasers_ptr;
+    Laser *lasers_ptr;
     FILE *fp;
 
     if ((fp = fopen(laser_data_file, "r")) == NULL) {
@@ -262,7 +262,7 @@ int get_laser_data(laser **lasers)
         exit(EXIT_FAILURE);
     }
 
-    if ((lasers_ptr = malloc(j * sizeof(laser))) == NULL) {
+    if ((lasers_ptr = malloc(j * sizeof(Laser))) == NULL) {
         perror("Failed to allocate memory for lasers_ptr");
         exit(EXIT_FAILURE);
     }
@@ -271,7 +271,7 @@ int get_laser_data(laser **lasers)
             &lasers_ptr[i].discharge_pressure, lasers_ptr[i].carbon_dioxide) != EOF) {
         i++;
         if (i == j) {
-            if ((lasers_ptr = realloc(lasers_ptr, (j *= 2) * sizeof(laser))) == NULL) {
+            if ((lasers_ptr = realloc(lasers_ptr, (j *= 2) * sizeof(Laser))) == NULL) {
                 perror("Failed to reallocate memory for lasers_ptr");
                 exit(EXIT_FAILURE);
             }
@@ -294,10 +294,10 @@ void *process(void *arg)
     int i;
     int j;
     time_t the_time;
-    satin_process_args *process_args = (satin_process_args*) arg;
-    laser laser_data = process_args->laser_data;
+    SatinProcessArgs *process_args = (SatinProcessArgs*) arg;
+    Laser laser_data = process_args->laser_data;
     char *output_file = laser_data.output_file;
-    gaussian *gaussians;
+    Gaussian *gaussians;
     FILE *fp;
 
     if ((fp = fopen(output_file, "w+")) == NULL) {
@@ -332,7 +332,7 @@ void *process(void *arg)
     return NULL;
 }
 
-int gaussian_calculation(int input_power, float small_signal_gain, gaussian **gaussians)
+int gaussian_calculation(int input_power, float small_signal_gain, Gaussian **gaussians)
 {
     int i;
     int j;
@@ -342,9 +342,9 @@ int gaussian_calculation(int input_power, float small_signal_gain, gaussian **ga
     double input_intensity;
     double expr2;
     double r;
-    gaussian *gaussians_ptr;
+    Gaussian *gaussians_ptr;
 
-    if ((gaussians_ptr = malloc(k * sizeof(gaussian))) == NULL) {
+    if ((gaussians_ptr = malloc(k * sizeof(Gaussian))) == NULL) {
         perror("Failed to allocate memory for gaussians_ptr");
         exit(EXIT_FAILURE);
     }
@@ -380,7 +380,7 @@ int gaussian_calculation(int input_power, float small_signal_gain, gaussian **ga
         gaussians_ptr[i].output_power_minus_input_power = output_power - input_power;
         i++;
         if (i == k) {
-            if ((gaussians_ptr = realloc(gaussians_ptr, (k *= 2) * sizeof(gaussian))) == NULL) {
+            if ((gaussians_ptr = realloc(gaussians_ptr, (k *= 2) * sizeof(Gaussian))) == NULL) {
                 perror("Failed to reallocate memory for gaussians_ptr");
                 exit(EXIT_FAILURE);
             }
