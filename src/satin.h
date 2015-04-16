@@ -10,7 +10,7 @@
 
 typedef struct Laser {
     char output_file[9];
-    double small_signal_gain;
+    float small_signal_gain;
     int discharge_pressure;
     char carbon_dioxide[3];
 } Laser;

@@ -267,7 +267,7 @@ int get_laser_data(Laser **lasers)
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fp, "%s %lf %d %s\n", lasers_ptr[i].output_file, &lasers_ptr[i].small_signal_gain,
+    while (fscanf(fp, "%s %f %d %s\n", lasers_ptr[i].output_file, &lasers_ptr[i].small_signal_gain,
                   &lasers_ptr[i].discharge_pressure, lasers_ptr[i].carbon_dioxide) != EOF) {
         i++;
         if (i == j) {
@@ -297,7 +297,7 @@ void *process(void *arg)
     SatinProcessArgs *process_args = (SatinProcessArgs*) arg;
     Laser laser_data = process_args->laser_data;
     char *output_file = laser_data.output_file;
-    Gaussian *gaussians;
+    Gaussian *gaussians = NULL;
     FILE *fp;
 
     if ((fp = fopen(output_file, "w+")) == NULL) {
