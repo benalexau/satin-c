@@ -268,7 +268,7 @@ int get_laser_data(Laser **lasers)
     }
 
     while (fscanf(fp, "%s %lf %d %s\n", lasers_ptr[i].output_file, &lasers_ptr[i].small_signal_gain,
-            &lasers_ptr[i].discharge_pressure, lasers_ptr[i].carbon_dioxide) != EOF) {
+                  &lasers_ptr[i].discharge_pressure, lasers_ptr[i].carbon_dioxide) != EOF) {
         i++;
         if (i == j) {
             if ((lasers_ptr = realloc(lasers_ptr, (j *= 2) * sizeof(Laser))) == NULL) {
@@ -392,3 +392,4 @@ int gaussian_calculation(int input_power, float small_signal_gain, Gaussian **ga
     free(expr1);
     return i;
 }
+
