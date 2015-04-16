@@ -1,8 +1,3 @@
-.cproject
-.project
-.settings
 .DS_Store
 *.out
 satin
-satin-regex
-Release
