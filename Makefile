@@ -1,5 +1,4 @@
-LASER = default
-CFLAGS = -O3 -Wall -std=c90 -ansi -pedantic -D${LASER}
+CFLAGS = -O3 -Wall -std=c90 -ansi -pedantic -Ddefault
 
 default: bench
 
@@ -10,7 +9,7 @@ clean:
 
 satin: clean
 	@echo 'Building target: $@'
-	gcc -o satin src/satin.c ${CFLAGS} -lm -lpthread 
+	gcc -o satin src/satin.c ${CFLAGS} -lm -lpthread
 
 bench: satin
 	@echo Executing ...
