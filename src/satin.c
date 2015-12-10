@@ -10,18 +10,18 @@
 #include <pthread.h>
 #include <errno.h>
 
-#define PI    3.14159265358979323846264338327950288L
-#define RAD   18E-2
-#define RAD2  (RAD * RAD)
-#define W1    3E-1
-#define DR    2E-3
-#define DZ    4E-2
-#define LAMDA 10.6E-3
-#define AREA  (PI * RAD2)
-#define Z1    (PI * (W1 * W1) / LAMDA)
-#define Z12   (Z1 * Z1)
-#define EXPR  (2 * PI * DR)
-#define INCR  8001
+#define PI     3.14159265358979323846264338327950288L
+#define RAD    18E-2
+#define RAD2   (RAD * RAD)
+#define W1     3E-1
+#define DR     2E-3
+#define DZ     4E-2
+#define LAMBDA 10.6E-3
+#define AREA   (PI * RAD2)
+#define Z1     (PI * (W1 * W1) / LAMBDA)
+#define Z12    (Z1 * Z1)
+#define EXPR   (2 * PI * DR)
+#define INCR   8001
 
 int main(int argc, char *argv[])
 {
