@@ -27,7 +27,6 @@ int main(int argc, char *argv[])
 {
     struct timeval t1;
     struct timeval t2;
-    double elapsed_time;
 
     gettimeofday(&t1, NULL);
     if (argc > 1 && strcmp(argv[1], "-single") == 0) {
@@ -37,7 +36,7 @@ int main(int argc, char *argv[])
     }
     gettimeofday(&t2, NULL);
 
-    elapsed_time = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1E6;
+    double elapsed_time = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1E6;
     printf("The time was %.3f seconds.\n", elapsed_time);
     pthread_exit(NULL);
     return EXIT_SUCCESS;
@@ -45,7 +44,6 @@ int main(int argc, char *argv[])
 
 void calculate()
 {
-    unsigned int i;
     unsigned int *input_powers;
     Laser *lasers;
     SatinProcessArgs *process_args;
@@ -58,7 +56,7 @@ void calculate()
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < lNum; i++) {
+    for (unsigned int i = 0; i < lNum; i++) {
         process_args[i].pnum = pNum;
         process_args[i].input_powers = input_powers;
         process_args[i].laser_data = lasers[i];
@@ -291,8 +289,6 @@ unsigned int get_laser_data(Laser **lasers)
 
 void *process(void *arg)
 {
-    unsigned int i;
-    unsigned int j;
     time_t the_time;
     SatinProcessArgs *process_args = (SatinProcessArgs*) arg;
     Laser laser_data = process_args->laser_data;
@@ -310,9 +306,9 @@ void *process(void *arg)
             "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t\t(watts)\t\t(watts/cm2)\t\t\t(watts)\n",
             ctime(&the_time), laser_data.discharge_pressure, laser_data.small_signal_gain, laser_data.carbon_dioxide);
 
-    for (i = 0; i < process_args->pnum; i++) {
+    for (unsigned int i = 0; i < process_args->pnum; i++) {
         int gaussians_size = gaussian_calculation(process_args->input_powers[i], laser_data.small_signal_gain, &gaussians);
-        for (j = 0; j < gaussians_size; j++) {
+        for (unsigned int j = 0; j < gaussians_size; j++) {
             fprintf(fp, "%u\t\t%7.3f\t\t%u\t\t%5.3f\t\t%7.3f\n", gaussians[j].input_power, gaussians[j].output_power,
                     gaussians[j].saturation_intensity, gaussians[j].log_output_power_divided_by_input_power,
                     gaussians[j].output_power_minus_input_power);
@@ -335,7 +331,6 @@ void *process(void *arg)
 unsigned int gaussian_calculation(unsigned int input_power, float small_signal_gain, Gaussian **gaussians)
 {
     unsigned int i;
-    unsigned int j;
     unsigned int k = 17;
     unsigned int saturation_intensity;
     double *expr1;
@@ -368,7 +363,7 @@ unsigned int gaussian_calculation(unsigned int input_power, float small_signal_g
         double output_power = 0.0;
         for (r = 0.0; r <= 0.5; r += DR) {
             double output_intensity = input_intensity * exp(-2 * pow(r, 2) / RAD2);
-            for (j = 0; j < INCR; j++) {
+            for (unsigned int j = 0; j < INCR; j++) {
                 output_intensity *= (1 + expr3 / (saturation_intensity + output_intensity) - expr1[j]);
             }
             output_power += output_intensity * EXPR * r;
