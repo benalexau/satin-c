@@ -96,7 +96,7 @@ void calculate_concurrently()
         process_args[i].laser_data = lasers[i];
         rc = pthread_create(&threads[i], NULL, process, &process_args[i]);
         if (rc) {
-            printf("Failed to create thread %d, return code is %d\n", i, rc);
+            printf("Failed to create thread %u, return code is %d\n", i, rc);
             exit(EXIT_FAILURE);
         }
     }
@@ -104,7 +104,7 @@ void calculate_concurrently()
     for (i = 0; i < lnum; i++) {
         rc = pthread_join(threads[i], NULL);
         if (rc) {
-            printf("Failed to join thread %d, error code is %d\n", i, rc);
+            printf("Failed to join thread %u, error code is %d\n", i, rc);
             exit(EXIT_FAILURE);
         }
     }
@@ -128,7 +128,7 @@ unsigned int get_input_powers(unsigned int **input_powers)
         exit(EXIT_FAILURE);
     }
 
-    if ((input_powers_ptr = malloc(j * sizeof(int))) == NULL) {
+    if ((input_powers_ptr = malloc(j * sizeof(unsigned int))) == NULL) {
         perror("Failed to allocate memory for input_powers_ptr");
         exit(EXIT_FAILURE);
     }
@@ -136,7 +136,7 @@ unsigned int get_input_powers(unsigned int **input_powers)
     while (fscanf(fp, "%d\n", &input_powers_ptr[i]) != EOF) {
         i++;
         if (i == j) {
-            if ((input_powers_ptr = realloc(input_powers_ptr, (j *= 2) * sizeof(int))) == NULL) {
+            if ((input_powers_ptr = realloc(input_powers_ptr, (j *= 2) * sizeof(unsigned int))) == NULL) {
                 perror("Failed to reallocate memory for input_powers_ptr");
                 exit(EXIT_FAILURE);
             }
@@ -307,7 +307,7 @@ void *process(void *arg)
             ctime(&the_time), laser_data.discharge_pressure, laser_data.small_signal_gain, laser_data.carbon_dioxide);
 
     for (unsigned int i = 0; i < process_args->pnum; i++) {
-        int gaussians_size = gaussian_calculation(process_args->input_powers[i], laser_data.small_signal_gain, &gaussians);
+        unsigned int gaussians_size = gaussian_calculation(process_args->input_powers[i], laser_data.small_signal_gain, &gaussians);
         for (unsigned int j = 0; j < gaussians_size; j++) {
             fprintf(fp, "%u\t\t%7.3f\t\t%u\t\t%5.3f\t\t%7.3f\n", gaussians[j].input_power, gaussians[j].output_power,
                     gaussians[j].saturation_intensity, gaussians[j].log_output_power_divided_by_input_power,
@@ -330,12 +330,8 @@ void *process(void *arg)
 
 unsigned int gaussian_calculation(unsigned int input_power, float small_signal_gain, Gaussian **gaussians)
 {
-    unsigned int i;
     unsigned int k = 17;
-    unsigned int saturation_intensity;
     double *expr1;
-    double input_intensity;
-    double expr2;
     Gaussian *gaussians_ptr;
 
     if ((gaussians_ptr = malloc(k * sizeof(Gaussian))) == NULL) {
@@ -348,16 +344,16 @@ unsigned int gaussian_calculation(unsigned int input_power, float small_signal_g
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < INCR; i++) {
+    for (unsigned int i = 0; i < INCR; i++) {
         double z_inc = ((double) i - INCR / 2) / 25;
         expr1[i] = z_inc * 2 * DZ / (Z12 + pow(z_inc, 2));
     }
 
-    input_intensity = 2 * input_power / AREA;
-    expr2 = small_signal_gain / 32000 * DZ;
+    double input_intensity = 2 * input_power / AREA;
+    double expr2 = small_signal_gain / 32000 * DZ;
 
-    i = 0;
-    for (saturation_intensity = 10000; saturation_intensity <= 25000; saturation_intensity += 1000) {
+    unsigned int i = 0;
+    for (unsigned int saturation_intensity = 10000; saturation_intensity <= 25000; saturation_intensity += 1000) {
         double expr3 = saturation_intensity * expr2;
         double output_power = 0.0;
         for (float r = 0.0; r <= 0.5; r += DR) {
