@@ -336,7 +336,6 @@ unsigned int gaussian_calculation(unsigned int input_power, float small_signal_g
     double *expr1;
     double input_intensity;
     double expr2;
-    float r;
     Gaussian *gaussians_ptr;
 
     if ((gaussians_ptr = malloc(k * sizeof(Gaussian))) == NULL) {
@@ -361,7 +360,7 @@ unsigned int gaussian_calculation(unsigned int input_power, float small_signal_g
     for (saturation_intensity = 10000; saturation_intensity <= 25000; saturation_intensity += 1000) {
         double expr3 = saturation_intensity * expr2;
         double output_power = 0.0;
-        for (r = 0.0; r <= 0.5; r += DR) {
+        for (float r = 0.0; r <= 0.5; r += DR) {
             double output_intensity = input_intensity * exp(-2 * pow(r, 2) / RAD2);
             for (unsigned int j = 0; j < INCR; j++) {
                 output_intensity *= (1 + expr3 / (saturation_intensity + output_intensity) - expr1[j]);
