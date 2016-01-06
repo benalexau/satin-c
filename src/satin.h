@@ -11,19 +11,19 @@
 typedef struct Laser {
     char output_file[9];
     float small_signal_gain;
-    int discharge_pressure;
+    unsigned int discharge_pressure;
     char carbon_dioxide[3];
 } Laser;
 
 typedef struct SatinProcessArgs {
-    int pnum;
-    int *input_powers;
+    unsigned int pnum;
+    unsigned int *input_powers;
     Laser laser_data;
 } SatinProcessArgs;
 
 typedef struct Gaussian {
-    int input_power;
-    int saturation_intensity;
+    unsigned int input_power;
+    unsigned int saturation_intensity;
     double output_power;
     double log_output_power_divided_by_input_power;
     double output_power_minus_input_power;
@@ -31,12 +31,12 @@ typedef struct Gaussian {
 
 void calculate();
 void calculate_concurrently();
-int get_input_powers(int **input_powers);
-int get_laser_data(Laser **lasers);
+unsigned int get_input_powers(unsigned int **input_powers);
+unsigned int get_laser_data(Laser **lasers);
 #ifdef REGEX
 char *get_regerror(int errcode, regex_t *preg);
 #endif
 void *process(void *arg);
-int gaussian_calculation(int input_power, float small_signal_gain, Gaussian **gaussians);
+unsigned int gaussian_calculation(unsigned int input_power, float small_signal_gain, Gaussian **gaussians);
 
 #endif

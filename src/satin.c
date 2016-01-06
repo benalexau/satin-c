@@ -45,13 +45,13 @@ int main(int argc, char *argv[])
 
 void calculate()
 {
-    int i;
-    int *input_powers;
+    unsigned int i;
+    unsigned int *input_powers;
     Laser *lasers;
     SatinProcessArgs *process_args;
 
-    int pNum = get_input_powers(&input_powers);
-    int lNum = get_laser_data(&lasers);
+    unsigned int pNum = get_input_powers(&input_powers);
+    unsigned int lNum = get_laser_data(&lasers);
 
     if ((process_args = malloc(lNum * sizeof(SatinProcessArgs))) == NULL) {
         perror("Failed to allocate memory for process_args");
@@ -72,15 +72,15 @@ void calculate()
 
 void calculate_concurrently()
 {
-    int i;
+    unsigned int i;
     int rc;
-    int *input_powers;
+    unsigned int *input_powers;
     Laser *lasers;
     pthread_t *threads;
     SatinProcessArgs *process_args;
 
-    int pnum = get_input_powers(&input_powers);
-    int lnum = get_laser_data(&lasers);
+    unsigned int pnum = get_input_powers(&input_powers);
+    unsigned int lnum = get_laser_data(&lasers);
 
     if ((threads = malloc(lnum * sizeof(pthread_t))) == NULL) {
         perror("Failed to allocate memory for threads");
@@ -117,11 +117,11 @@ void calculate_concurrently()
     free(threads);
 }
 
-int get_input_powers(int **input_powers)
+unsigned int get_input_powers(unsigned int **input_powers)
 {
-    int i = 0;
-    int j = 6;
-    int *input_powers_ptr;
+    unsigned int i = 0;
+    unsigned int j = 6;
+    unsigned int *input_powers_ptr;
     char *input_power_file = "pin.dat";
     FILE *fp;
 
@@ -156,12 +156,12 @@ int get_input_powers(int **input_powers)
 }
 
 #ifdef REGEX
-int get_laser_data(Laser **lasers)
+unsigned int get_laser_data(Laser **lasers)
 {
-    int i = 0;
-    int j = 9;
+    unsigned int i = 0;
+    unsigned int j = 9;
     int rc;
-    int buf = 25;
+    unsigned int buf = 25;
     char *laser_data_file = "laser.dat";
     char *pattern = "((md|pi)[a-z]{2}\\.out)[ ]+([0-9]{2}\\.[0-9])[ ]+([0-9]+)[ ]+(MD|PI)";
     char *line;
@@ -249,10 +249,10 @@ char *get_regerror(int errcode, regex_t *compiled)
 }
 
 #else
-int get_laser_data(Laser **lasers)
+unsigned int get_laser_data(Laser **lasers)
 {
-    int i = 0;
-    int j = 9;
+    unsigned int i = 0;
+    unsigned int j = 9;
     char *laser_data_file = "laser.dat";
     Laser *lasers_ptr;
     FILE *fp;
@@ -267,7 +267,7 @@ int get_laser_data(Laser **lasers)
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fp, "%s %f %d %s\n", lasers_ptr[i].output_file, &lasers_ptr[i].small_signal_gain,
+    while (fscanf(fp, "%s %f %u %s\n", lasers_ptr[i].output_file, &lasers_ptr[i].small_signal_gain,
                   &lasers_ptr[i].discharge_pressure, lasers_ptr[i].carbon_dioxide) != EOF) {
         i++;
         if (i == j) {
@@ -291,8 +291,8 @@ int get_laser_data(Laser **lasers)
 
 void *process(void *arg)
 {
-    int i;
-    int j;
+    unsigned int i;
+    unsigned int j;
     time_t the_time;
     SatinProcessArgs *process_args = (SatinProcessArgs*) arg;
     Laser laser_data = process_args->laser_data;
@@ -313,7 +313,7 @@ void *process(void *arg)
     for (i = 0; i < process_args->pnum; i++) {
         int gaussians_size = gaussian_calculation(process_args->input_powers[i], laser_data.small_signal_gain, &gaussians);
         for (j = 0; j < gaussians_size; j++) {
-            fprintf(fp, "%d\t\t%7.3f\t\t%d\t\t%5.3f\t\t%7.3f\n", gaussians[j].input_power, gaussians[j].output_power,
+            fprintf(fp, "%u\t\t%7.3f\t\t%u\t\t%5.3f\t\t%7.3f\n", gaussians[j].input_power, gaussians[j].output_power,
                     gaussians[j].saturation_intensity, gaussians[j].log_output_power_divided_by_input_power,
                     gaussians[j].output_power_minus_input_power);
         }
@@ -332,12 +332,12 @@ void *process(void *arg)
     return NULL;
 }
 
-int gaussian_calculation(int input_power, float small_signal_gain, Gaussian **gaussians)
+unsigned int gaussian_calculation(unsigned int input_power, float small_signal_gain, Gaussian **gaussians)
 {
-    int i;
-    int j;
-    int k = 17;
-    int saturation_intensity;
+    unsigned int i;
+    unsigned int j;
+    unsigned int k = 17;
+    unsigned int saturation_intensity;
     double *expr1;
     double input_intensity;
     double expr2;
