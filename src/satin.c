@@ -124,7 +124,7 @@ unsigned int get_input_powers(unsigned int **input_powers)
     FILE *fp;
 
     if ((fp = fopen(input_power_file, "r")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", input_power_file, strerror(errno));
+        fprintf(stderr, "Failed to open %s: %s\n", input_power_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -146,7 +146,7 @@ unsigned int get_input_powers(unsigned int **input_powers)
     *input_powers = input_powers_ptr;
 
     if (fclose(fp) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", input_power_file, strerror(errno));
+        fprintf(stderr, "Failed to close %s: %s\n", input_power_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -170,7 +170,7 @@ unsigned int get_laser_data(Laser **lasers)
     FILE *fp;
 
     if ((fp = fopen(laser_data_file, "r")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", laser_data_file, strerror(errno));
+        fprintf(stderr, "Failed to open %s: %s\n", laser_data_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -226,7 +226,7 @@ unsigned int get_laser_data(Laser **lasers)
     *lasers = lasers_ptr;
 
     if (fclose(fp) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", laser_data_file, strerror(errno));
+        fprintf(stderr, "Failed to close %s: %s\n", laser_data_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -256,7 +256,7 @@ unsigned int get_laser_data(Laser **lasers)
     FILE *fp;
 
     if ((fp = fopen(laser_data_file, "r")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", laser_data_file, strerror(errno));
+        fprintf(stderr, "Failed to open %s: %s\n", laser_data_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -279,7 +279,7 @@ unsigned int get_laser_data(Laser **lasers)
     *lasers = lasers_ptr;
 
     if (fclose(fp) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", laser_data_file, strerror(errno));
+        fprintf(stderr, "Failed to close %s: %s\n", laser_data_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -297,7 +297,7 @@ void *process(void *arg)
     FILE *fp;
 
     if ((fp = fopen(output_file, "w+")) == NULL) {
-        fprintf(stderr, "Error opening %s: %s\n", output_file, strerror(errno));
+        fprintf(stderr, "Failed to open %s: %s\n", output_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
@@ -320,7 +320,7 @@ void *process(void *arg)
     fflush(fp);
 
     if (fclose(fp) == EOF) {
-        fprintf(stderr, "Error closing %s: %s\n", output_file, strerror(errno));
+        fprintf(stderr, "Failed to close %s: %s\n", output_file, strerror(errno));
         exit(EXIT_FAILURE);
     }
 
