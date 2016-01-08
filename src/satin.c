@@ -96,7 +96,7 @@ void calculate_concurrently()
         process_args[i].laser_data = lasers[i];
         rc = pthread_create(&threads[i], NULL, process, &process_args[i]);
         if (rc) {
-            printf("Failed to create thread %u, return code is %d\n", i, rc);
+            printf("Failed to create thread %u: %d\n", i, rc);
             exit(EXIT_FAILURE);
         }
     }
@@ -104,7 +104,7 @@ void calculate_concurrently()
     for (i = 0; i < lnum; i++) {
         rc = pthread_join(threads[i], NULL);
         if (rc) {
-            printf("Failed to join thread %u, error code is %d\n", i, rc);
+            printf("Failed to join thread %u: %d\n", i, rc);
             exit(EXIT_FAILURE);
         }
     }
