@@ -13,6 +13,6 @@ Run with:
 
 or
 
-./satin -concurrent
+./satin -single
 
 
