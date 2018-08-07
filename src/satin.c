@@ -10,20 +10,19 @@
 #include <pthread.h>
 #include <errno.h>
 
-#define PI     3.14159265358979323846264338327950288L
 #define RAD    0.18
 #define RAD2   (RAD * RAD)
 #define W1     0.3
 #define DR     0.002
 #define DZ     0.04
 #define LAMBDA 0.0106
-#define AREA   (PI * RAD2)
-#define Z1     (PI * (W1 * W1) / LAMBDA)
+#define AREA   (M_PI * RAD2)
+#define Z1     (M_PI * (W1 * W1) / LAMBDA)
 #define Z12    (Z1 * Z1)
-#define EXPR   (2 * PI * DR)
+#define EXPR   (2 * M_PI * DR)
 #define INCR   8001
 
-int main(int argc, char *argv[])
+int main(int argc, char** argv)
 {
     struct timeval t1;
     struct timeval t2;
@@ -39,7 +38,6 @@ int main(int argc, char *argv[])
     double elapsed_time = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1E6;
     printf("The time was %.3f seconds.\n", elapsed_time);
     pthread_exit(NULL);
-    return EXIT_SUCCESS;
 }
 
 void calculate()
@@ -133,7 +131,7 @@ unsigned int get_input_powers(unsigned int **input_powers)
         exit(EXIT_FAILURE);
     }
 
-    while (fscanf(fp, "%d\n", &input_powers_ptr[i]) != EOF) {
+    while (fscanf(fp, "%u\n", &input_powers_ptr[i]) != EOF) {
         i++;
         if (i == j) {
             if ((input_powers_ptr = realloc(input_powers_ptr, (j *= 2) * sizeof(unsigned int))) == NULL) {
@@ -356,12 +354,13 @@ unsigned int gaussian_calculation(unsigned int input_power, float small_signal_g
     for (unsigned int saturation_intensity = 10000; saturation_intensity <= 25000; saturation_intensity += 1000) {
         double expr3 = saturation_intensity * expr2;
         double output_power = 0.0;
-        for (float r = 0.0; r <= 0.5; r += DR) {
-            double output_intensity = input_intensity * exp(-2 * pow(r, 2) / RAD2);
+        for (unsigned int r = 0; r <= 250; r++) {
+            double r1 = r / 500.0;
+            double output_intensity = input_intensity * exp(-2 * pow(r1, 2) / RAD2);
             for (unsigned int j = 0; j < INCR; j++) {
                 output_intensity *= (1 + expr3 / (saturation_intensity + output_intensity) - expr1[j]);
             }
-            output_power += output_intensity * EXPR * r;
+            output_power += output_intensity * EXPR * r1;
         }
         gaussians_ptr[i].input_power = input_power;
         gaussians_ptr[i].saturation_intensity = saturation_intensity;
