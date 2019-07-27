@@ -14,3 +14,4 @@ satin: clean
 bench: satin
 	@echo Executing ...
 	./satin
+

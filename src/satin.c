@@ -29,11 +29,7 @@ int main(int argc, char** argv)
     struct timeval t2;
 
     gettimeofday(&t1, NULL);
-    if (argc > 1 && strcmp(argv[1], "-single") == 0) {
-        calculate();
-    } else {
-        calculate_concurrently();
-    }
+    calculate();
     gettimeofday(&t2, NULL);
 
     double elapsed_time = t2.tv_sec - t1.tv_sec + (t2.tv_usec - t1.tv_usec) / 1E6;
@@ -42,32 +38,6 @@ int main(int argc, char** argv)
 }
 
 void calculate()
-{
-    unsigned int *input_powers;
-    Laser *lasers;
-    SatinProcessArgs *process_args;
-
-    unsigned int pNum = get_input_powers(&input_powers);
-    unsigned int lNum = get_laser_data(&lasers);
-
-    if ((process_args = malloc(lNum * sizeof(SatinProcessArgs))) == NULL) {
-        perror("Failed to allocate memory for process_args");
-        exit(EXIT_FAILURE);
-    }
-
-    for (unsigned int i = 0; i < lNum; i++) {
-        process_args[i].pnum = pNum;
-        process_args[i].input_powers = input_powers;
-        process_args[i].laser_data = lasers[i];
-        process(&process_args[i]);
-    }
-
-    free(input_powers);
-    free(lasers);
-    free(process_args);
-}
-
-void calculate_concurrently()
 {
     unsigned int i;
     int rc;
@@ -152,100 +122,6 @@ unsigned int get_input_powers(unsigned int **input_powers)
     return i;
 }
 
-#ifdef REGEX
-unsigned int get_laser_data(Laser **lasers)
-{
-    unsigned int i = 0;
-    unsigned int j = 9;
-    int rc;
-    unsigned int buf = 25;
-    char *laser_data_file = "laser.dat";
-    char *pattern = "((md|pi)[a-z]{2}\\.out)[ ]+([0-9]{2}\\.[0-9])[ ]+([0-9]+)[ ]+(MD|PI)";
-    char *line;
-    regex_t compiled;
-    size_t nmatch = 6;
-    regmatch_t *match_ptr;
-    Laser *lasers_ptr;
-    FILE *fp;
-
-    if ((fp = fopen(laser_data_file, "r")) == NULL) {
-        fprintf(stderr, "Failed to open %s: %s\n", laser_data_file, strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-    if ((lasers_ptr = malloc(j * sizeof(Laser))) == NULL) {
-        perror("Failed to allocate memory for lasers_ptr");
-        exit(EXIT_FAILURE);
-    }
-
-    if ((match_ptr = malloc(nmatch * sizeof(regmatch_t))) == NULL) {
-        perror("Failed to allocate memory for regex match pointer");
-        exit(EXIT_FAILURE);
-    }
-
-    rc = regcomp(&compiled, pattern, REG_EXTENDED);
-    if (rc) {
-        printf("Failed to compile regex: %d (%s)\n", rc, get_regerror(rc, &compiled));
-        exit(EXIT_FAILURE);
-    }
-
-    if ((line = malloc(buf * sizeof(char))) == NULL) {
-        perror("Failed to allocate memory for line");
-        exit(EXIT_FAILURE);
-    }
-
-    while (fgets(line, buf, fp) != NULL) {
-        rc = regexec(&compiled, line, nmatch, match_ptr, 0);
-        if (rc) {
-            printf("Failed to execute regex: %d (%s)\n", rc, get_regerror(rc, &compiled));
-            exit(rc);
-        }
-
-        line[match_ptr[1].rm_eo] = 0;
-        strcpy(lasers_ptr[i].output_file, line + match_ptr[1].rm_so);
-
-        line[match_ptr[3].rm_eo] = 0;
-        lasers_ptr[i].small_signal_gain = atof(line + match_ptr[3].rm_so);
-
-        line[match_ptr[4].rm_eo] = 0;
-        lasers_ptr[i].discharge_pressure = atoi(line + match_ptr[4].rm_so);
-
-        line[match_ptr[5].rm_eo] = 0;
-        strcpy(lasers_ptr[i].carbon_dioxide, line + match_ptr[5].rm_so);
-
-        i++;
-        if (i == j) {
-            if ((lasers_ptr = realloc(lasers_ptr, (j *= 2) * sizeof(Laser))) == NULL) {
-                perror("Failed to reallocate memory for lasers_ptr");
-                exit(EXIT_FAILURE);
-            }
-        }
-    }
-
-    *lasers = lasers_ptr;
-
-    if (fclose(fp) == EOF) {
-        fprintf(stderr, "Failed to close %s: %s\n", laser_data_file, strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-
-    printf("Parsed %d records of %s with regex\n", i, laser_data_file);
-
-    regfree(&compiled);
-    free(line);
-    free(match_ptr);
-    return i;
-}
-
-char *get_regerror(int errcode, regex_t *compiled)
-{
-    size_t length = regerror(errcode, compiled, NULL, 0);
-    char *buffer = malloc(length);
-    (void) regerror(errcode, compiled, buffer, length);
-    return buffer;
-}
-
-#else
 unsigned int get_laser_data(Laser **lasers)
 {
     unsigned int i = 0;
@@ -284,7 +160,6 @@ unsigned int get_laser_data(Laser **lasers)
 
     return i;
 }
-#endif
 
 void *process(void *arg)
 {

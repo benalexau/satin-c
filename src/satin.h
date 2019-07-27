@@ -4,10 +4,6 @@
 #ifndef SATIN_H
 #define SATIN_H
 
-#ifdef REGEX
-#include <regex.h>
-#endif
-
 typedef struct Laser {
     char output_file[9];
     float small_signal_gain;
@@ -30,12 +26,8 @@ typedef struct Gaussian {
 } Gaussian;
 
 void calculate();
-void calculate_concurrently();
 unsigned int get_input_powers(unsigned int **input_powers);
 unsigned int get_laser_data(Laser **lasers);
-#ifdef REGEX
-char *get_regerror(int errcode, regex_t *preg);
-#endif
 void *process(void *arg);
 unsigned int gaussian_calculation(unsigned int input_power, float small_signal_gain, Gaussian **gaussians);
 
