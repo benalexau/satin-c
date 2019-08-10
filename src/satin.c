@@ -16,11 +16,11 @@
 #define DR     0.002
 #define DZ     0.04
 #define LAMBDA 0.0106
-#define M_PI   3.14159265358979323846
-#define AREA   (M_PI * RAD2)
-#define Z1     (M_PI * (W1 * W1) / LAMBDA)
+#define PI     3.14159265358979323846
+#define AREA   (PI * RAD2)
+#define Z1     (PI * (W1 * W1) / LAMBDA)
 #define Z12    (Z1 * Z1)
-#define EXPR   (2 * M_PI * DR)
+#define EXPR   (2 * PI * DR)
 #define INCR   8001
 
 int main(int argc, char** argv)
