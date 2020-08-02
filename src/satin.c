@@ -199,6 +199,7 @@ void *process(void *arg)
     }
 
     free(gaussians);
+    printf("Created %s\n", output_file);
     return NULL;
 }
 
