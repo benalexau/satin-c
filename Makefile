@@ -1,4 +1,4 @@
-CFLAGS = -O3 -Wall -std=c18 -pedantic
+CFLAGS = -O3 -Wall -std=c17 -pedantic -static
 
 default: bench
 
