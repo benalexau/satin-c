@@ -187,9 +187,11 @@ void *process(void *arg) {
     for (int i = 0; i < process_args->pnum; i++) {
         int gaussians_size = gaussian_calculation(process_args->input_powers[i], laser_data.small_signal_gain, &gaussians);
         for (int j = 0; j < gaussians_size; j++) {
-            fprintf(fp, "%u\t\t%7.3f\t\t%u\t\t%5.3f\t\t%7.3f\n", gaussians[j].input_power,
+            fprintf(fp, "%u\t\t%7.3f\t\t%u\t\t%5.3f\t\t%7.3f\n", 
+                    gaussians[j].input_power,
                     gaussians[j].output_power,
-                    gaussians[j].saturation_intensity, gaussians[j].log_output_power_divided_by_input_power,
+                    gaussians[j].saturation_intensity, 
+                    gaussians[j].log_output_power_divided_by_input_power,
                     gaussians[j].output_power_minus_input_power);
         }
     }
