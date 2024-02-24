@@ -18,10 +18,8 @@ typedef struct SatinProcessArgs {
 
 typedef struct Gaussian {
     int input_power;
-    int saturation_intensity;
     double output_power;
-    double log_output_power_divided_by_input_power;
-    double output_power_minus_input_power;
+    int saturation_intensity;
 } Gaussian;
 
 void calculate();
