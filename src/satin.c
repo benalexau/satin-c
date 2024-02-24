@@ -191,12 +191,12 @@ void *process(void *arg) {
     for (int i = 0; i < process_args->pnum; i++) {
         int gaussians_size = gaussian_calculation(process_args->input_powers[i], laser_data.small_signal_gain, &gaussians);
         for (int j = 0; j < gaussians_size; j++) {
-            fprintf(fp, "%-10d%-21.14f%-14d%5.3f%15.3f\n", 
+            fprintf(fp, "%-10d%-21.14f%-14d%5.3f%16.3f\n", 
                     gaussians[j].input_power,
                     gaussians[j].output_power,
                     gaussians[j].saturation_intensity, 
-                    gaussians[j].log_output_power_divided_by_input_power,
-                    gaussians[j].output_power_minus_input_power);
+                    log(gaussians[j].output_power / gaussians[j].input_power),
+                    gaussians[j].output_power - gaussians[j].input_power);
         }
     }
 
@@ -238,8 +238,7 @@ int gaussian_calculation(int input_power, float small_signal_gain, Gaussian **ga
         gaussians_ptr[i].input_power = input_power;
         gaussians_ptr[i].saturation_intensity = saturation_intensity;
         gaussians_ptr[i].output_power = calculate_output_power(input_power, small_signal_gain, saturation_intensity);
-        gaussians_ptr[i].log_output_power_divided_by_input_power = log(gaussians_ptr[i].output_power / input_power);
-        gaussians_ptr[i].output_power_minus_input_power = gaussians_ptr[i].output_power - input_power;
+
         i++;
         if (i == max_size) {
             if ((gaussians_ptr = realloc(gaussians_ptr, (max_size *= 2) * sizeof(Gaussian))) == NULL) {
