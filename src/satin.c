@@ -180,14 +180,18 @@ void *process(void *arg) {
     }
 
     time(&the_time);
-    fprintf(fp,
-            "Start date: %s\nGaussian Beam\n\nPressure in Main Discharge = %dkPa\nSmall-signal Gain = %4.1f\nCO2 via %s\n\nPin\t\tPout\t\tSat. Int\tln(Pout/Pin)\tPout-Pin\n(watts)\t(watts)\t\t(watts/cm2)\t\t\t\t\t(watts)\n",
-            ctime(&the_time), laser_data.discharge_pressure, laser_data.small_signal_gain, laser_data.carbon_dioxide);
+    fprintf(fp, "Start date: %s\n", ctime(&the_time));
+    fprintf(fp, "Gaussian Beam\n\n");
+    fprintf(fp, "Pressure in Main Discharge = %dkPa\n", laser_data.discharge_pressure);
+    fprintf(fp, "Small-signal Gain = %4.1f\n", laser_data.small_signal_gain);   
+    fprintf(fp, "CO2 via %s\n\n", laser_data.carbon_dioxide);        
+    fprintf(fp, "Pin       Pout                 Sat. Int      ln(Pout/Pin)   Pout-Pin\n");           
+    fprintf(fp, "(watts)   (watts)              (watts/cm2)                  (watts)\n");           
 
     for (int i = 0; i < process_args->pnum; i++) {
         int gaussians_size = gaussian_calculation(process_args->input_powers[i], laser_data.small_signal_gain, &gaussians);
         for (int j = 0; j < gaussians_size; j++) {
-            fprintf(fp, "%d\t\t%7.3f\t\t%u\t\t%5.3f\t\t\t%7.3f\n", 
+            fprintf(fp, "%-10d%-21.14f%-14d%5.3f%15.3f\n", 
                     gaussians[j].input_power,
                     gaussians[j].output_power,
                     gaussians[j].saturation_intensity, 
