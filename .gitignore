@@ -4,4 +4,6 @@ bin
 obj
 satin-c.cbp
 satin-c.layout
+satin.exe
+.vscode/
 
