@@ -48,9 +48,7 @@ int main() {
 }
 
 void calculate() {
-    int i;
-    int rc;
-    int *input_powers;
+    int i, rc, *input_powers;
     Laser *lasers;
     pthread_t *threads;
     SatinProcessArgs *process_args;
@@ -94,9 +92,7 @@ void calculate() {
 }
 
 int get_input_powers(int **input_powers) {
-    int i = 0;
-    int max_size = 6;
-    int *input_powers_ptr;
+    int i = 0, max_size = 6, *input_powers_ptr;
     FILE *fp;
 
     if ((fp = fopen(INPUT_FILE, "r")) == NULL) {
@@ -130,8 +126,7 @@ int get_input_powers(int **input_powers) {
 }
 
 int get_laser_data(Laser **lasers) {
-    int i = 0;
-    int max_size = 9;
+    int i = 0, max_size = 9;
     Laser *lasers_ptr;
     FILE *fp;
 
