@@ -21,7 +21,6 @@
 #define Z1         (PI * (W1 * W1) / LAMBDA)
 #define Z12        (Z1 * Z1)
 #define EXPR       (2 * PI * DR)
-#define INCR       8001
 #define INPUT_FILE "pin.dat"
 #define LASER_FILE "laser.dat"
 
@@ -210,22 +209,11 @@ void *process(void *arg) {
 
 int gaussian_calculation(int input_power, float small_signal_gain, Gaussian **gaussians) {
     int max_size = 17;
-    double *expr1;
     Gaussian *gaussians_ptr;
 
     if ((gaussians_ptr = calloc(max_size, sizeof(Gaussian))) == NULL) {
         perror("Failed to allocate memory for gaussians_ptr");
         exit(EXIT_FAILURE);
-    }
-
-    if ((expr1 = calloc(INCR, sizeof(double))) == NULL) {
-        perror("Failed to allocate memory for expr1");
-        exit(EXIT_FAILURE);
-    }
-
-    for (int i = 0; i < INCR; i++) {
-        double z_inc = ((double) i - INCR / 2) / 25;
-        expr1[i] = z_inc * 2 * DZ / (Z12 + pow(z_inc, 2));
     }
 
     int i = 0;
@@ -244,20 +232,20 @@ int gaussian_calculation(int input_power, float small_signal_gain, Gaussian **ga
     }
 
     *gaussians = gaussians_ptr;
-
-    free(expr1);
     return i;
 }
 
 double calculate_output_power(int input_power, float small_signal_gain, int saturation_intensity) {
+    int incr = 8001;
     double *expr1;
-    if ((expr1 = calloc(INCR, sizeof(double))) == NULL) {
+
+    if ((expr1 = calloc(incr, sizeof(double))) == NULL) {
         perror("Failed to allocate memory for expr1");
         exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < INCR; i++) {
-        double z_inc = ((double) i - INCR / 2) / 25;
+    for (int i = 0; i < incr; i++) {
+        double z_inc = ((double) i - incr / 2) / 25;
         expr1[i] = z_inc * 2 * DZ / (Z12 + pow(z_inc, 2));
     }
 
@@ -268,7 +256,7 @@ double calculate_output_power(int input_power, float small_signal_gain, int satu
     for (int r = 0; r <= 250; r++) {
         double r1 = r / 500.0;
         double output_intensity = input_intensity * exp(-2 * pow(r1, 2) / RAD2);
-        for (int j = 0; j < INCR; j++) {
+        for (int j = 0; j < incr; j++) {
             output_intensity *= (1 + saturation_intensity * expr2 / (saturation_intensity + output_intensity) - expr1[j]);
         }
         output_power += output_intensity * EXPR * r1;
